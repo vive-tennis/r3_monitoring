@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>trayicon.jpeg</file>
+    </qresource>
+</RCC>
