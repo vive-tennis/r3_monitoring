@@ -40,6 +40,12 @@ source /opt/ros/melodic/setup.bash
 
 * No need to move the code inside the docker => mount the source code dir on the docker
 
+## TODO
+
+- [x] Support ROS1
+- [ ] Support ROS2 
+  - [ ] change docker base to `ros:foxy-ros1-bridge`
+  - [ ] update r3_client.py script
 
 
 
