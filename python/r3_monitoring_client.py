@@ -7,8 +7,9 @@ from datetime import datetime
 import socket
 import json
 import paho.mqtt.client as paho
-from monitoring.serialization import ros2dict
-from .config import CONFIGS
+
+from serialization import ros2dict
+from config import CONFIGS
 
 
 if os.environ.get("ROS_VERSION") == "1":
@@ -22,24 +23,23 @@ class R3MonitoringClient:
     def __init__(self, name="ros_r3_monitoring", protocol_type="udp"):
         self.all_topics = {}
         self.local_subs = {}
-        self.connection_timeout = 60
         self.protocol_type = protocol_type.lower()
         self.server_images_address_port = CONFIGS.SERVER_IP, CONFIGS.IMAGE_PORT
 
         if self.protocol_type == "tcp":
-            self.server_address_port = CONFIGS.IP, CONFIGS.TCP_PORT
+            self.server_address_port = CONFIGS.SERVER_IP, CONFIGS.TCP_PORT
             self.socket_type = socket.SOCK_STREAM
         elif self.protocol_type == "udp":
-            self.server_address_port = CONFIGS.IP, CONFIGS.UDP_PORT
+            self.server_address_port = CONFIGS.SERVER_IP, CONFIGS.UDP_PORT
             self.socket_type = socket.SOCK_DGRAM
         elif self.protocol_type == "mqtt":
-            self.server_address_port = CONFIGS.IP, CONFIGS.MQTT_PORT
+            self.server_address_port = CONFIGS.SERVER_IP, CONFIGS.MQTT_PORT
             pass
         else:
             raise ValueError(f"Invalid socket type: {self.protocol_type}")
 
         start_connecting_time = time.time()
-        while time.time() - start_connecting_time < self.connection_timeout:
+        while time.time() - start_connecting_time < CONFIGS.CONNECTION_TIMEOUT:
             try:
                 if self.protocol_type in ["tcp", "udp"]:
                     self.socket = socket.socket(family=socket.AF_INET, type=self.socket_type)

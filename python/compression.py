@@ -1,7 +1,7 @@
 import base64
 import io
 import numpy as np
-from .cv_bridge import imgmsg_to_cv2
+from cv_bridge import imgmsg_to_cv2
 
 try:
     import simplejpeg

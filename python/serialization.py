@@ -1,7 +1,7 @@
 import array
 import base64
 import numpy as np
-from .compression import *
+from compression import *
 
 
 def ros2dict(msg):
