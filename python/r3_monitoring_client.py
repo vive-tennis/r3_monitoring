@@ -7,9 +7,8 @@ from datetime import datetime
 import socket
 import json
 import paho.mqtt.client as paho
-
 from monitoring.serialization import ros2dict
-from vive_ai.utils.config_loader import config
+from .config import CONFIGS
 
 
 if os.environ.get("ROS_VERSION") == "1":
@@ -25,16 +24,16 @@ class R3MonitoringClient:
         self.local_subs = {}
         self.connection_timeout = 60
         self.protocol_type = protocol_type.lower()
-        self.server_images_address_port = config.server.IP, config.server.IMAGE_PORT
+        self.server_images_address_port = CONFIGS.SERVER_IP, CONFIGS.IMAGE_PORT
 
         if self.protocol_type == "tcp":
-            self.server_address_port = config.server.IP, config.server.TCP_PORT
+            self.server_address_port = CONFIGS.IP, CONFIGS.TCP_PORT
             self.socket_type = socket.SOCK_STREAM
         elif self.protocol_type == "udp":
-            self.server_address_port = config.server.IP, config.server.UDP_PORT
+            self.server_address_port = CONFIGS.IP, CONFIGS.UDP_PORT
             self.socket_type = socket.SOCK_DGRAM
         elif self.protocol_type == "mqtt":
-            self.server_address_port = config.server.IP, config.server.MQTT_PORT
+            self.server_address_port = CONFIGS.IP, CONFIGS.MQTT_PORT
             pass
         else:
             raise ValueError(f"Invalid socket type: {self.protocol_type}")
@@ -51,9 +50,9 @@ class R3MonitoringClient:
 
                 if self.protocol_type == "mqtt":
                     self.socket = paho.Client("control1")  # create client object
-                    self.socket.on_publish = on_publish  # assign function to callback
-                    self.socket.username_pw_set(config.server.ACCESS_TOKEN)  # access token from thingsboard device
-                    self.socket.connect(config.server.IP, config.server.MQTT_PORT, keepalive=60)  # establish connection
+                    self.socket.on_publish = lambda a, b, c: None  # assign function to callback
+                    self.socket.username_pw_set(CONFIGS.ACCESS_TOKEN)  # access token from thingsboard device
+                    self.socket.connect(CONFIGS.IP, CONFIGS.MQTT_PORT, keepalive=60)  # establish connection
 
                 print("R3MonitoringClient: connected to server successfully!")
                 break
@@ -61,7 +60,7 @@ class R3MonitoringClient:
                 print(e)
                 time.sleep(3)
 
-        self.buffer_size = config.server.BUFFER_SIZE
+        self.buffer_size = CONFIGS.BUFFER_SIZE
         self.last_time_topic_sent = {}
         try:
             rospy.init_node(name)
@@ -76,7 +75,7 @@ class R3MonitoringClient:
         # convert ROS message into a dict and get it ready for serialization
         ros_msg_dict = ros2dict(ros_msg)
 
-        if self.protocol_type == "udp" and config.server.SEND_IMAGES and "_data_jpeg" in ros_msg_dict.keys():
+        if self.protocol_type == "udp" and CONFIGS.SEND_IMAGES and "_data_jpeg" in ros_msg_dict.keys():
             img = ros_msg_dict['_data_jpeg']
             mtu = 1000
             n = len(img) // mtu
@@ -97,7 +96,7 @@ class R3MonitoringClient:
         ros_msg_dict["host_name"] = socket.gethostname()
 
         # don't send messages faster than 5 Hz
-        if ts - self.last_time_topic_sent.get(topic_name, 0) < config.server.SEND_FREQ:
+        if ts - self.last_time_topic_sent.get(topic_name, 0) < CONFIGS.SEND_FREQ:
             return
         self.last_time_topic_sent[topic_name] = ts
 
@@ -176,8 +175,11 @@ class R3MonitoringClient:
             print("R3MonitoringClient: ", e)
             # self.socket.close()
 
-def on_publish(client,userdata,result):             #create function for callback
-    pass
 
 if __name__ == '__main__':
-    r3_monitoring = R3MonitoringClient()
+    ros_logger = R3MonitoringClient(protocol_type=CONFIGS.SOCKET_TYPE)
+
+    while True:
+        ros_logger.step()
+        time.sleep(2)
+
