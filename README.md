@@ -27,6 +27,14 @@ sudo chmod +x /usr/local/bin/docker-compose
 ### Dockerfile
 `docker pull ros:noetic-ros-base`
 
+#### Install dependencies (temp)
+
+```
+apt update
+apt install python3-pip
+pip3 install paramiko simplejpeg psutil paho-mqtt mock
+```
+
 ### Run docker
 * interactively and access it through another terminal
 
