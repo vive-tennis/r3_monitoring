@@ -5,6 +5,7 @@
 #include <memory>
 #include <QSystemTrayIcon>
 
+#include "topic.h"
 #include "form/configurationdialog.h"
 
 class AppController : public QObject
@@ -13,6 +14,9 @@ class AppController : public QObject
 public:
     explicit AppController(QObject *parent = nullptr);
     bool runSystemTray();
+
+private:
+    bool loadSettings();
 
 private slots:
     void on_topicsAction_triggered();
@@ -24,6 +28,12 @@ private slots:
 private:
     std::unique_ptr<QSystemTrayIcon> _systemTray;
     std::unique_ptr<ConfigurationDialog> _confDialog;
+
+    QString _serviceName;
+    QString _topicsFile;
+    QString _r3monitoringConfFile;
+
+    QList<Topic> _topicList;
 };
 
 #endif // APPCONTROLLER_H

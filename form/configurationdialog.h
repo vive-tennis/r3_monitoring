@@ -3,6 +3,8 @@
 
 #include <QDialog>
 
+#include "topic.h"
+
 namespace Ui {
 class ConfigurationDialog;
 }
@@ -22,10 +24,12 @@ public:
 public:
     explicit ConfigurationDialog(QWidget *parent = nullptr);
     ~ConfigurationDialog();
+    void setTopicList(QList<Topic> topicList);
     void setTab(TabName tabName);
 
 private:
     Ui::ConfigurationDialog *ui;
+    QList<Topic> _topicList;
     TabName _tabName;
 };
 

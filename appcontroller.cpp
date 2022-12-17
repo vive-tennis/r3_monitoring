@@ -5,11 +5,16 @@
 #include <QMessageBox>
 #include <QApplication>
 #include <iostream>
+#include <QSettings>
+#include <QFile>
+#include <QDir>
 
 AppController::AppController(QObject *parent)
     : QObject{parent}
 {
+    loadSettings();
     _confDialog = std::make_unique<ConfigurationDialog>();
+    _confDialog->setTopicList(_topicList);
 }
 
 bool AppController::runSystemTray()
@@ -55,6 +60,48 @@ bool AppController::runSystemTray()
 
     std::cerr << "SystemTrayIcon is not available" << std::endl;
     return false;
+}
+
+bool AppController::loadSettings()
+{
+
+    QSettings settings(APP_ORG, APP_NAME);
+    _serviceName = settings.value("service_name", "r3-monitoring-client").toString();
+    _topicsFile = settings.value("topics_file", QDir::homePath() + "/.r3-monitoring/topics.csv").toString();
+    _r3monitoringConfFile = settings.value("r3_monitoring_conf_file", QDir::homePath() + "/.r3-monitoring/config.yaml").toString();
+
+    settings.setValue("service_name", _serviceName);
+    settings.setValue("topics_file", _topicsFile);
+    settings.setValue("r3_monitoring_conf_file", _r3monitoringConfFile);
+
+
+    // load topics
+    QFile file(_topicsFile);
+    if (!file.open(QIODevice::ReadOnly)) {
+        std::cerr << file.errorString().toStdString() << std::endl;
+        return false;
+    }
+
+    while (!file.atEnd()) {
+        auto line = QString(file.readLine());
+        line = line.remove('\n');
+        auto splittedLine = line.split(',');
+        const int desired_size = 4;
+        if (splittedLine.size() != desired_size) {
+            std::cerr << "format of " << _topicsFile.toStdString() << " is not correct.  It should be " << desired_size << " columns!" << std::endl;
+            return false;
+        }
+
+        Topic topic;
+        topic.name = splittedLine[0];
+        topic.type = splittedLine[1];
+        topic.time_created = splittedLine[2];
+        topic.excluded = QVariant(splittedLine[3]).toBool();
+
+        _topicList.append(topic);
+    }
+
+    return true;
 }
 
 void AppController::on_topicsAction_triggered()

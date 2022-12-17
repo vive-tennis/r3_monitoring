@@ -15,7 +15,8 @@ SOURCES += \
 
 HEADERS += \
     appcontroller.h \
-    form/configurationdialog.h
+    form/configurationdialog.h \
+    topic.h
 
 
 # Default rules for deployment.
@@ -28,3 +29,6 @@ RESOURCES += \
 
 FORMS += \
     form/configurationdialog.ui
+
+DEFINES += APP_NAME=\\\"r3-monitoring-client-ui\\\"
+DEFINES += APP_ORG=\\\"Vive\\\"
