@@ -79,8 +79,8 @@ class R3MonitoringClient:
                 configs = yaml.load(f, Loader=yaml.FullLoader)
                 all_topic_names = configs["topic_names"]
                 all_topic_types = configs["topic_types"]
-                topic_keys = [list(topic_name.keys())[0] for topic_name in all_topic_names]
-                self.black_list_topics_name = [all_topic_names[i][topic_keys[i]] for i in range(len(all_topic_names)) if not all_topic_names[i][topic_keys[i]]]
+                self.black_list_topics_name = [name for name, value in all_topic_names.items() if value["include"] is False]
+                self.black_list_topics_type = [name for name, value in all_topic_types.items() if value["include"] is False]
         except Exception as e:
             print("Error (load_black_list): ", e)
             return

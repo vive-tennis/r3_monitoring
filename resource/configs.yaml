@@ -8,7 +8,7 @@ topic_names:
         type: std_msgs/String
         created: 2019-07-18 15:00:00
     /vivebot/monitoring/heartbeat:
-        include: true
+        include: false
         type: std_msgs/Bool
         created: 2019-07-18 15:35:00
 
