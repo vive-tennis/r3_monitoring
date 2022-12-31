@@ -1,4 +1,5 @@
-py_service_name: r3-monitoring-client
+py_service_name: r3-monitoring-client.py
+ui_service_name: r3-monitoring-client-ui
 py_service_version: 0.0.1
 
 topic_names:
