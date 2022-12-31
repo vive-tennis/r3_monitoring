@@ -1,0 +1,17 @@
+py_service_name: r3-monitoring-client
+py_service_version: 0.0.1
+
+topic_names:
+    - /vivebot/monitoring:
+        include: true
+        type: std_msgs/String
+        created: 2019-07-18 15:00:00
+    - /vivebot/monitoring/heartbeat:
+        include: true
+        type: std_msgs/Bool
+        created: 2019-07-18 15:35:00
+
+topic_types:
+  - std_msgs/String: true
+  - std_msgs/Bool: false
+  - std_msgs/Int32: false
