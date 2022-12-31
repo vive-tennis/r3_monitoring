@@ -179,7 +179,23 @@ class R3MonitoringClient:
 if __name__ == '__main__':
     ros_logger = R3MonitoringClient(protocol_type=CONFIGS.SOCKET_TYPE)
 
+    import signal
+    pause_program = False
+
+    def signal_handler(sig, frame):
+        global pause_program
+        if sig == signal.SIGUSR1:
+            pause_program = True
+            print("Pause program")
+        elif sig == signal.SIGUSR2:
+            pause_program = False
+            print("Resume program")
+
+    signal.signal(signal.SIGUSR1, signal_handler)
+    signal.signal(signal.SIGUSR2, signal_handler)
+
     while True:
-        ros_logger.step()
+        if not pause_program:
+            ros_logger.step()
         time.sleep(2)
 
