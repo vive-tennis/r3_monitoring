@@ -16,7 +16,7 @@ ConfigurationDialog::~ConfigurationDialog()
     delete ui;
 }
 
-void ConfigurationDialog::setTopicList(QList<Topic> topicList)
+void ConfigurationDialog::setTopicList(QList<TopicName> topicList)
 {
     _topicList = topicList;
 
@@ -26,16 +26,16 @@ void ConfigurationDialog::setTopicList(QList<Topic> topicList)
 
         QCheckBox *cbName = new QCheckBox(ui->TopicsWidget);
         cbName->setText(topic.name);
-        cbName->setChecked(topic.excluded);
-        ui->topicGridLayout->addWidget(cbName, i, 0);
+        cbName->setChecked(topic.included);
+        ui->topicNameGridLayout->addWidget(cbName, i, 0);
 
         QLabel *lblType = new QLabel(ui->TopicsWidget);
         lblType->setText(topic.type);
-        ui->topicGridLayout->addWidget(lblType, i, 1);
+        ui->topicNameGridLayout->addWidget(lblType, i, 1);
 
         QLabel *lblDate = new QLabel(ui->TopicsWidget);
         lblDate->setText(topic.time_created);
-        ui->topicGridLayout->addWidget(lblDate, i, 2);
+        ui->topicNameGridLayout->addWidget(lblDate, i, 2);
     }
 }
 
@@ -58,3 +58,16 @@ void ConfigurationDialog::setTab(TabName tabName)
         break;
     }
 }
+
+void ConfigurationDialog::on_comboBox_currentIndexChanged(int index)
+{
+    if (index == 0) {
+        ui->frameTopicName->hide();
+        ui->frameTopicName->show();
+    }
+    else {
+        ui->frameTopicName->show();
+        ui->frameTopicName->hide();
+    }
+}
+

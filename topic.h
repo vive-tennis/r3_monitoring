@@ -2,11 +2,16 @@
 #define TOPIC_H
 #include <QString>
 
-struct Topic {
+struct TopicName {
     QString name;
     QString type;
     QString time_created;
-    bool  excluded;
+    bool included;
+};
+
+struct TopicType {
+    QString name;
+    bool included;
 };
 
 #endif // TOPIC_H

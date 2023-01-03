@@ -24,12 +24,15 @@ public:
 public:
     explicit ConfigurationDialog(QWidget *parent = nullptr);
     ~ConfigurationDialog();
-    void setTopicList(QList<Topic> topicList);
+    void setTopicList(QList<TopicName> topicList);
     void setTab(TabName tabName);
+
+private slots:
+    void on_comboBox_currentIndexChanged(int index);
 
 private:
     Ui::ConfigurationDialog *ui;
-    QList<Topic> _topicList;
+    QList<TopicName> _topicList;
     TabName _tabName;
 };
 

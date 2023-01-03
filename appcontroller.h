@@ -33,7 +33,7 @@ private:
     QString _topicsFile;
     QString _r3monitoringConfFile;
 
-    QList<Topic> _topicList;
+    QList<TopicName> _topicList;
 };
 
 #endif // APPCONTROLLER_H

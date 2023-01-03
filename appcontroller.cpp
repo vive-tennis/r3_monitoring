@@ -92,11 +92,11 @@ bool AppController::loadSettings()
             return false;
         }
 
-        Topic topic;
+        TopicName topic;
         topic.name = splittedLine[0];
         topic.type = splittedLine[1];
         topic.time_created = splittedLine[2];
-        topic.excluded = QVariant(splittedLine[3]).toBool();
+        topic.included = QVariant(splittedLine[3]).toBool();
 
         _topicList.append(topic);
     }
