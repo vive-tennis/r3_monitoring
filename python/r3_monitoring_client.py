@@ -7,6 +7,7 @@ from datetime import datetime
 import socket
 import json
 import paho.mqtt.client as paho
+import yaml
 
 from serialization import ros2dict
 from config import CONFIGS
@@ -25,6 +26,9 @@ class R3MonitoringClient:
         self.local_subs = {}
         self.protocol_type = protocol_type.lower()
         self.server_images_address_port = CONFIGS.SERVER_IP, CONFIGS.IMAGE_PORT
+
+        self.black_list_topics_name = []
+        self.black_list_topics_type = []
 
         if self.protocol_type == "tcp":
             self.server_address_port = CONFIGS.SERVER_IP, CONFIGS.TCP_PORT
@@ -68,6 +72,18 @@ class R3MonitoringClient:
         except Exception as e:
             print("Error (R3MonitoringClient): ", e)
             # self.socket.close()
+
+    def load_black_list(self):
+        try:
+            with open("../resource/configs.yaml", "r") as f:
+                configs = yaml.load(f, Loader=yaml.FullLoader)
+                all_topic_names = configs["topic_names"]
+                all_topic_types = configs["topic_types"]
+                self.black_list_topics_name = [name for name, value in all_topic_names.items() if value["include"] is False]
+                self.black_list_topics_type = [name for name, value in all_topic_types.items() if value["include"] is False]
+        except Exception as e:
+            print("Error (load_black_list): ", e)
+            return
 
     def on_ros_msg(self, ros_msg, topic_info):
         topic_name, topic_type = topic_info
@@ -178,8 +194,29 @@ class R3MonitoringClient:
 
 if __name__ == '__main__':
     ros_logger = R3MonitoringClient(protocol_type=CONFIGS.SOCKET_TYPE)
+    ros_logger.load_black_list()
+
+    import signal
+    pause_program = False
+
+    def signal_handler(sig, frame):
+        global pause_program
+        if sig == signal.SIGUSR1:
+            pause_program = True
+            print("Pause program")
+        elif sig == signal.SIGUSR2:
+            pause_program = False
+            print("Resume program")
+        elif sig == signal.SIGHUP:
+            ros_logger.load_black_list()
+            print("Reload black list topics")
+
+    signal.signal(signal.SIGUSR1, signal_handler)
+    signal.signal(signal.SIGUSR2, signal_handler)
+    signal.signal(signal.SIGHUP, signal_handler)
 
     while True:
-        ros_logger.step()
+        if not pause_program:
+            ros_logger.step()
         time.sleep(2)
 
