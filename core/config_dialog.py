@@ -1,4 +1,5 @@
 from PyQt5 import QtWidgets, uic
+from typing import Dict
 
 
 class ConfigDialog(QtWidgets.QDialog):
@@ -13,25 +14,28 @@ class ConfigDialog(QtWidgets.QDialog):
         uic.loadUi('form/configurationdialog.ui', self)  # Load the .ui file
 
         self._tabName = self.TabName.TOPICS
-        self._topicList = []
+        self._name_checkboxes = {}
+        self._type_labels = {}
+        self._date_labels = {}
 
-    def setTopicList(self, topicList):
-        self.topicList = topicList
-        self.topicListWidget.addItems(self.topicList)
-        for i in range(len(self.topicList)):
-            topic = self.topicList[i]
-            cbName = QtWidgets.QCheckBox(self.topicListWidget)
-            cbName.setText(topic.name)
-            cbName.setChecked(topic.included)
+    def setTopicList(self, topicList: Dict):
+        # self.topicListWidget.addItems(topicList)
+        for i, topic in enumerate(topicList.items()):
+            cbName = QtWidgets.QCheckBox(self.TopicsWidget)
+            cbName.setText(topic[0])
+            cbName.setChecked(True)
             self.topicNameGridLayout.addWidget(cbName, i, 0)
+            self._name_checkboxes[topic[0]] = cbName
 
-            lblType = QtWidgets.QLabel(self.topicListWidget)
-            lblType.setText(topic.type)
+            lblType = QtWidgets.QLabel(self.TopicsWidget)
+            lblType.setText(topic[1])
             self.topicNameGridLayout.addWidget(lblType, i, 1)
+            self._type_labels[topic[0]] = lblType
 
-            lblDate = QtWidgets.QLabel(self.topicListWidget)
-            lblDate.setText(topic.time_created)
+            lblDate = QtWidgets.QLabel(self.TopicsWidget)
+            lblDate.setText("topic.time_created")
             self.topicNameGridLayout.addWidget(lblDate, i, 2)
+            self._date_labels[topic[0]] = lblDate
 
     def setTab(self, tabName):
         if tabName == self.TabName.TOPICS:

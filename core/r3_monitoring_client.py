@@ -22,11 +22,11 @@ else:
 class R3MonitoringClient:
     def __init__(self, configs, name="ros_r3_monitoring"):
         self.configs = configs
-        self.all_topics = {}
-        self.local_subs = {}
         self.protocol_type = self.configs.SOCKET_TYPE.lower()
         self.server_images_address_port = self.configs.SERVER_IP, self.configs.IMAGE_PORT
 
+        self.all_topics = {}
+        self.local_subs = {}
         self.black_list_topics_name = []
         self.black_list_topics_type = []
 
@@ -89,21 +89,32 @@ class R3MonitoringClient:
             self.load_black_list()
             print("Reload black list topics")
 
-    def load_black_list(self):
-        try:
-            with open("../resource/configs.yaml", "r") as f:
-                configs = yaml.load(f, Loader=yaml.FullLoader)
-                all_topic_names = configs["topic_names"]
-                all_topic_types = configs["topic_types"]
-                self.black_list_topics_name = [name for name, value in all_topic_names.items() if value["include"] is False]
-                self.black_list_topics_type = [name for name, value in all_topic_types.items() if value["include"] is False]
-        except Exception as e:
-            print("Error (load_black_list): ", e)
-            return
+    def pause(self):
+        self.pause_program = True
+        print("Pause program")
+
+    def resume(self):
+        self.pause_program = False
+        print("Resume program")
+
+    # def load_black_list(self):
+    #     try:
+    #         with open("../resource/configs.yaml", "r") as f:
+    #             configs = yaml.load(f, Loader=yaml.FullLoader)
+    #             all_topic_names = configs["topic_names"]
+    #             all_topic_types = configs["topic_types"]
+    #             self.black_list_topics_name = [name for name, value in all_topic_names.items() if value["include"] is False]
+    #             self.black_list_topics_type = [name for name, value in all_topic_types.items() if value["include"] is False]
+    #     except Exception as e:
+    #         print("Error (load_black_list): ", e)
+    #         return
 
     def on_ros_msg(self, ros_msg, topic_info):
-        if self.pause_program:
+        if self.pause_program is True:
             return
+        if topic_info[0] in self.black_list_topics_name or topic_info[1] in self.black_list_topics_type:
+            return
+
         topic_name, topic_type = topic_info
 
         # convert ROS message into a dict and get it ready for serialization
@@ -188,7 +199,7 @@ class R3MonitoringClient:
             return None
 
     def step(self):
-        print("Log messages ...")
+        print("Update topics ...")
         try:
             current_topics = rospy.get_published_topics()
             for topic_tuple in current_topics:
@@ -213,7 +224,7 @@ class R3MonitoringClient:
 def main():
     from core.config import CONFIGS
     r3_monitoring = R3MonitoringClient(CONFIGS)
-    r3_monitoring.load_black_list()
+    # r3_monitoring.load_black_list()
 
     while True:
         r3_monitoring.step()

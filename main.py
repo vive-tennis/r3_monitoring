@@ -14,15 +14,15 @@ def main():
     app = QApplication([])
     app.setQuitOnLastWindowClosed(False)
 
-    app_controller = AppController(app)
-    app_controller.make_system_tray_menu()
     r3_monitoring = R3MonitoringClient(CONFIGS)
+    app_controller = AppController(app, r3_monitoring)
+    app_controller.make_system_tray_menu()
 
     # run on a separate thread
     def r3_monitoring_thread_run():
         while True:
-            r3_monitoring.step()
-            time.sleep(2)
+            r3_monitoring.step()  # update topics
+            time.sleep(3)
     r3_monitoring_thread = Thread(target=r3_monitoring_thread_run)
     r3_monitoring_thread.start()
 
