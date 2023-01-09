@@ -1,6 +1,7 @@
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMenu, QSystemTrayIcon, QAction, QWidget
 from .config_dialog import ConfigDialog
+from .ros_utils import is_roscore_running, kill_roscore, start_roscore
 
 
 class AppController(QWidget):
@@ -36,6 +37,7 @@ class AppController(QWidget):
         self.accountAction = QAction(self.tr("&Account"))
         self.connectionAction = QAction(self.tr("&Connection"))
         self.pauseAction = QAction(self.tr("&Pause Monitoring"))
+        self.roscoreAction = QAction(self.tr("&Start roscore"))
         self.aboutAction = QAction(self.tr("&About"))
         self.quitAction = QAction(self.tr("&Quit"))
 
@@ -43,6 +45,7 @@ class AppController(QWidget):
         self.trayIconMenu.addAction(self.topicsAction)
         self.trayIconMenu.addAction(self.accountAction)
         self.trayIconMenu.addAction(self.connectionAction)
+        self.trayIconMenu.addAction(self.roscoreAction)
         self.trayIconMenu.addAction(self.pauseAction)
         self.trayIconMenu.addSeparator()
         self.trayIconMenu.addAction(self.aboutAction)
@@ -55,6 +58,7 @@ class AppController(QWidget):
         self.topicsAction.triggered.connect(self.on_topicsAction_triggered)
         self.accountAction.triggered.connect(self.on_accountAction_triggered)
         self.connectionAction.triggered.connect(self.on_connectiontAction_triggered)
+        self.roscoreAction.triggered.connect(self.on_roscoreAction_triggered)
         self.pauseAction.triggered.connect(self.on_pauseAction_triggered)
         self.aboutAction.triggered.connect(self.on_aboutAction_triggered)
         self.quitAction.triggered.connect(self.on_quitAction_triggered)
@@ -71,6 +75,14 @@ class AppController(QWidget):
     def on_connectiontAction_triggered(self):
         self._configDialog.setTab(ConfigDialog.TabName.CONNECTION)
         self._configDialog.show()
+
+    def on_roscoreAction_triggered(self):
+        if is_roscore_running():
+            self.roscoreAction.setText("Start roscore")
+            kill_roscore()
+        else:
+            self.roscoreAction.setText("Stop roscore")
+            start_roscore()
 
     def on_pauseAction_triggered(self):
         if "Pause" in self.pauseAction.text():

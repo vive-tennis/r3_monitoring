@@ -9,6 +9,7 @@ import json
 import paho.mqtt.client as paho
 import yaml
 
+from core.ros_utils import is_roscore_running
 from core.serialization import ros2dict
 
 
@@ -24,6 +25,7 @@ class R3MonitoringClient:
         self.configs = configs
         self.protocol_type = self.configs.SOCKET_TYPE.lower()
         self.server_images_address_port = self.configs.SERVER_IP, self.configs.IMAGE_PORT
+        self.name = name
 
         self.all_topics = {}
         self.local_subs = {}
@@ -56,7 +58,7 @@ class R3MonitoringClient:
                     self.socket = paho.Client("control1")  # create client object
                     self.socket.on_publish = lambda a, b, c: None  # assign function to callback
                     self.socket.username_pw_set(self.configs.ACCESS_TOKEN)  # access token from thingsboard device
-                    self.socket.connect(self.configs.IP, self.configs.MQTT_PORT, keepalive=60)  # establish connection
+                    self.socket.connect(self.configs.SERVER_IP, self.configs.MQTT_PORT, keepalive=60)  # establish connection
 
                 print("R3MonitoringClient: connected to server successfully!")
                 break
@@ -66,12 +68,7 @@ class R3MonitoringClient:
 
         self.buffer_size = self.configs.BUFFER_SIZE
         self.last_time_topic_sent = {}
-        try:
-            rospy.init_node(name)
-            print("R3MonitoringClient: connected to ROSCore successfully!")
-        except Exception as e:
-            print("Error (R3MonitoringClient): ", e)
-            # self.socket.close()
+        self.connect_to_ros()
 
         signal.signal(signal.SIGUSR1, self.signal_handler)
         signal.signal(signal.SIGUSR2, self.signal_handler)
@@ -88,6 +85,14 @@ class R3MonitoringClient:
         elif sig == signal.SIGHUP:
             self.load_black_list()
             print("Reload black list topics")
+
+    def connect_to_ros(self, timeout=10):
+        try:
+            if is_roscore_running():
+                rospy.init_node(self.name, anonymous=True)
+                print("R3MonitoringClient: connected to roscore successfully!")
+        except Exception as e:
+            print("R3MonitoringClient: ", e)
 
     def pause(self):
         self.pause_program = True
@@ -188,11 +193,7 @@ class R3MonitoringClient:
         try:
             if not msg_module.endswith(".msg"):
                 msg_module = msg_module + ".msg"
-            try:
-                module_ = importlib.import_module(msg_module)
-            except:
-                # if msg_type.startswith("std_msgs_stamped"):
-                module_ = importlib.import_module("vive_ai." + msg_module)  # std_msgs_stamped are added to vive_ai too
+            module_ = importlib.import_module(msg_module)
             return getattr(module_, msg_class_name)
         except Exception as e:
             print(str(e))
@@ -216,8 +217,8 @@ class R3MonitoringClient:
                         callback_args=(topic_name, topic_type),
                     )
 
-        except Exception as e:
-            print("R3MonitoringClient: ", e)
+        except ConnectionRefusedError as cr_error:
+            print("R3MonitoringClient: Not connected to ROS!", cr_error)
             # self.socket.close()
 
 
