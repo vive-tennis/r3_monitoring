@@ -51,6 +51,12 @@ source /opt/ros/melodic/setup.bash
 ## TODO
 
 - [x] Support ROS1
+- [x] Appear Program in Tray Bar
+- [x] Switch to PyQt for smoother integration
+- [ ] Show List of topics by name/type to include/exclude
+- [ ] Make it a linux daemon
+- [ ] Start/Stop ROS Core
+- [ ] Add REPL Terminal
 - [ ] Support ROS2 
   - [ ] change docker base to `ros:foxy-ros1-bridge`
   - [ ] update r3_client.py script
