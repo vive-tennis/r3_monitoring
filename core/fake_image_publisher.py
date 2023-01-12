@@ -16,3 +16,9 @@ class CameraImagePublisher:
             self.pub.publish(cv2_to_imgmsg(frame))
         self.rate.sleep()
 
+
+if __name__ == '__main__':
+    rospy.init_node('camera_image_publisher', anonymous=True)
+    camera_image_publisher = CameraImagePublisher()
+    while not rospy.is_shutdown():
+        camera_image_publisher.step()

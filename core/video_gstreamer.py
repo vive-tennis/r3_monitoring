@@ -9,15 +9,17 @@ class VideoGStreamer:
         self.topic_type = "sensor_msgs/Image"
         self.sub = rospy.Subscriber(topic_name, self.topic_type, self.on_ros_img)
         self.rate = rospy.Rate(10)  # 10hz
+        self.server_rtmp_url = "rtmp://localhost:1935/live"
 
         self.gstreamer_pipeline = (
-            "appsourcex name=mysource ! "            
+            f"appsourcex name=mysource ! "            
             "video/x-raw(memory:NVMM), "
             "width=(int)1280, height=(int)720, "
             "format=(string)NV12, framerate=(fraction)30/1 ! "
             "nvvidconv flip-method=2 ! "
             "video/x-raw, width=(int)1280, height=(int)720, format=(string)BGRx ! "
-            "videoconvert ! "
+            "videoconvert ! x264enc tune=zerolatency bitrate=1000 speed-preset=superfast ! "
+            f"flvmux name=mux ! rtmpsink location='{self.server_rtmp_url}' "
         )
 
         self.video_writer = cv2.VideoWriter(
