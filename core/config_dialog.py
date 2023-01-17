@@ -13,6 +13,11 @@ class ConfigDialog(QtWidgets.QDialog):
         super().__init__()  # Call the inherited classes __init__ method
         uic.loadUi('form/configurationdialog.ui', self)  # Load the .ui file
 
+        self.cbSelectTopics.setCurrentIndex(0);
+        self.stwTopics.setCurrentIndex(0);
+
+        self.cbSelectTopics.currentIndexChanged.connect(self.onCbSelectTopicsCurrentIndexChanged)
+
         self._tabName = self.TabName.TOPICS
         self._name_checkboxes = {}
         self._type_labels = {}
@@ -47,12 +52,9 @@ class ConfigDialog(QtWidgets.QDialog):
         elif tabName == self.TabName.ABOUT:
             self.tabWidget.setCurrentWidget(self.AboutWidget)
 
-    def on_comboBox_currentIndexChanged(self, index):
+    def onCbSelectTopicsCurrentIndexChanged(self, index):
         if index == 0:
-            self.frameTopicName.hide()
-            self.frameTopicName.show()
             print("switch to topics by name")
         else:
-            self.frameTopicName.show()
-            self.frameTopicName.hide()
             print("switch to topics by type")
+        self.stwTopics.setCurrentIndex(index)
