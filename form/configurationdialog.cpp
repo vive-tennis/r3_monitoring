@@ -61,13 +61,6 @@ void ConfigurationDialog::setTab(TabName tabName)
 
 void ConfigurationDialog::on_comboBox_currentIndexChanged(int index)
 {
-    if (index == 0) {
-        ui->frameTopicName->hide();
-        ui->frameTopicName->show();
-    }
-    else {
-        ui->frameTopicName->show();
-        ui->frameTopicName->hide();
-    }
+    ui->stwTopics->setCurrentIndex(index);
 }
 
