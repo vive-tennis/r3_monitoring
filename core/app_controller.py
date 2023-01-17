@@ -18,10 +18,10 @@ class AppController(QObject):
         self._serviceName = ""
         self._topicsFile = ""
         self._r3monitoringConfFile = ""
-        self._topicList = []
+        self._topicList = {}
 
         self.loadSettings()
-        self._confDialog.setTopicList(self._topicList)
+        self._configDialog.setTopicList(self._topicList)
 
     def loadSettings(self):
         pass  # todo
