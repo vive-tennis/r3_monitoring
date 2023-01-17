@@ -1,19 +1,20 @@
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMenu, QSystemTrayIcon, QAction, QWidget
+from PyQt5.QtWidgets import QApplication
+from PyQt5.QtCore import QObject
 from .config_dialog import ConfigDialog
-from .ros_utils import is_roscore_running, kill_roscore, start_roscore
+#from .ros_utils import is_roscore_running, kill_roscore, start_roscore
 
 
-class AppController(QWidget):
-    def __init__(self, app_ptr: "QApplication", r3_monitoring_client_ptr: "R3MonitoringClient"):
+class AppController(QObject):
+    def __init__(self, app_ptr: "QApplication"):#, r3_monitoring_client_ptr: "R3MonitoringClient"):
         super().__init__()
         self.app = app_ptr
-        self._r3_monitoring_client = r3_monitoring_client_ptr
+        #self._r3_monitoring_client = r3_monitoring_client_ptr
 
         self._configDialog = ConfigDialog()
-        self._systemTray = QSystemTrayIcon()
+        self._systemTray = QSystemTrayIcon(self)
         self.trayIconMenu = QMenu()
-
         self._serviceName = ""
         self._topicsFile = ""
         self._r3monitoringConfFile = ""
@@ -58,14 +59,14 @@ class AppController(QWidget):
         self.topicsAction.triggered.connect(self.on_topicsAction_triggered)
         self.accountAction.triggered.connect(self.on_accountAction_triggered)
         self.connectionAction.triggered.connect(self.on_connectiontAction_triggered)
-        self.roscoreAction.triggered.connect(self.on_roscoreAction_triggered)
+        #self.roscoreAction.triggered.connect(self.on_roscoreAction_triggered)
         self.pauseAction.triggered.connect(self.on_pauseAction_triggered)
         self.aboutAction.triggered.connect(self.on_aboutAction_triggered)
         self.quitAction.triggered.connect(self.on_quitAction_triggered)
 
     def on_topicsAction_triggered(self):
         self._configDialog.setTab(ConfigDialog.TabName.TOPICS)
-        self._configDialog.setTopicList(self._r3_monitoring_client.all_topics)
+        #self._configDialog.setTopicList(self._r3_monitoring_client.all_topics)
         self._configDialog.show()
 
     def on_accountAction_triggered(self):
@@ -76,13 +77,13 @@ class AppController(QWidget):
         self._configDialog.setTab(ConfigDialog.TabName.CONNECTION)
         self._configDialog.show()
 
-    def on_roscoreAction_triggered(self):
-        if is_roscore_running():
-            self.roscoreAction.setText("Start roscore")
-            kill_roscore()
-        else:
-            self.roscoreAction.setText("Stop roscore")
-            start_roscore()
+    #def on_roscoreAction_triggered(self):
+    #    if is_roscore_running():
+    #        self.roscoreAction.setText("Start roscore")
+    #        kill_roscore()
+    #    else:
+    #        self.roscoreAction.setText("Stop roscore")
+    #        start_roscore()
 
     def on_pauseAction_triggered(self):
         if "Pause" in self.pauseAction.text():
