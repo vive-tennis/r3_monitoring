@@ -12,7 +12,7 @@ sys.path.append(".")
 
 
 def main():
-    app = QApplication([])
+    app = QApplication(sys.argv)
     app.setQuitOnLastWindowClosed(False)
 
     r3_monitoring = R3MonitoringClient(CONFIGS)
