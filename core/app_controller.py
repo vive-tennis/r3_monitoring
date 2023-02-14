@@ -27,7 +27,7 @@ class AppController(QObject):
         pass  # todo
 
     def make_system_tray_menu(self):
-        icon = QIcon("resource/trayicon.jpeg")
+        icon = QIcon("resource/icon.png")
         self._systemTray.setIcon(icon)
         self._systemTray.setToolTip("R3 Monitoring")
         self._systemTray.setVisible(True)
