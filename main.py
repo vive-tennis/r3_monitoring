@@ -11,25 +11,28 @@ from core.system_stat import SystemStatLogger
 sys.path.append(".")
 
 
-def main():
-    app = QApplication(sys.argv)
-    app.setQuitOnLastWindowClosed(False)
-
+def main(with_gui=False):
     r3_monitoring = R3MonitoringClient(CONFIGS)
     system_stat_logger = SystemStatLogger()
-    app_controller = AppController(app, r3_monitoring)
-    app_controller.make_system_tray_menu()
 
-    # run on a separate thread
-    def r3_monitoring_thread_run():
+    def run_r3_monitoring_thread():
         while True:
             r3_monitoring.step()  # update topics
             r3_monitoring.send_msg(system_stat_logger.create_msg())
             time.sleep(3)
-    r3_monitoring_thread = Thread(target=r3_monitoring_thread_run)
-    r3_monitoring_thread.start()
 
-    app.exec_()
+    if with_gui:
+        app = QApplication(sys.argv)
+        app.setQuitOnLastWindowClosed(False)
+        app_controller = AppController(app, r3_monitoring)
+        app_controller.make_system_tray_menu()
+
+        # run on a separate thread
+        r3_monitoring_thread = Thread(target=run_r3_monitoring_thread)
+        r3_monitoring_thread.start()
+        app.exec_()
+    else:
+        run_r3_monitoring_thread()
 
 
 if __name__ == '__main__':
