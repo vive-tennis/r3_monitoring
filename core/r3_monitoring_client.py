@@ -27,7 +27,9 @@ class R3MonitoringClient:
         self.server_images_address_port = self.configs.SERVER_IP, self.configs.IMAGE_PORT
         self.name = name
 
-        self.all_topics = {}
+        self.input_topics = {}
+        self.map_topics = {}
+
         self.local_subs = {}
         self.black_list_topics_name = []
         self.black_list_topics_type = []
@@ -63,7 +65,7 @@ class R3MonitoringClient:
                 print("R3MonitoringClient: connected to server successfully!")
                 break
             except Exception as e:
-                print(f"R3MonitoringClient: failed to connect to server | protocol: {self.protocol_type} | {e}")
+                print(f"R3MonitoringClient: failed to connect to server ({self.protocol_type}): {e}")
                 time.sleep(3)
 
         self.buffer_size = self.configs.BUFFER_SIZE
@@ -151,6 +153,8 @@ class R3MonitoringClient:
             return
         self.last_time_topic_sent[topic_name] = ts
 
+        if topic_name in self.map_topics.keys():
+            topic_name = self.map_topics[topic_name]
         message: dict = {"name": topic_name.strip("/"), "value": ros_msg_dict}
         self.send_msg(message)
         print(f"Message Sent: {topic_name}")
@@ -208,8 +212,12 @@ class R3MonitoringClient:
                 topic_name = topic_tuple[0]
                 topic_type = topic_tuple[1]
 
-                if topic_name not in self.all_topics:
-                    self.all_topics[topic_name] = topic_type
+                if topic_name not in self.input_topics:
+                    self.input_topics[topic_name] = topic_type
+                    if 'Float' in topic_type:
+                        self.map_topics[topic_name] = f"/Float{sum('Float' in s for s in self.map_topics.keys())+1}"
+                    # if 'Log' in topic_type:
+                    #     self.map_topics[topic_name] = f"/Log{sum('Log' in s for s in self.map_topics.keys())+1}"
 
                     self.local_subs[topic_name] = rospy.Subscriber(
                         topic_name,

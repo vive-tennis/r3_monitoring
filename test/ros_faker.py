@@ -11,7 +11,7 @@ from sensor_msgs.msg import NavSatFix, LaserScan, Image, PointCloud2, BatterySta
 from geometry_msgs.msg import Twist, PointStamped, Point
 from visualization_msgs.msg import Marker
 from rosgraph_msgs.msg import Log
-from std_msgs_stamped.msg import Float64MultiArrayStamped
+from vive_ai.std_msgs_stamped.msg import Float64MultiArrayStamped
 import random
 import cv2
 
