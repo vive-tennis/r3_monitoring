@@ -60,7 +60,9 @@ class R3MonitoringClient:
                     self.socket = paho.Client("control1")  # create client object
                     self.socket.on_publish = lambda a, b, c: None  # assign function to callback
                     self.socket.username_pw_set(self.configs.ACCESS_TOKEN)  # access token from thingsboard device
-                    self.socket.connect(self.configs.SERVER_IP, self.configs.MQTT_PORT, keepalive=60)  # establish connection
+                    self.socket.connect(self.configs.SERVER_IP, self.configs.MQTT_PORT, keepalive=10)  # establish connection
+                    self.socket.reconnect_delay_set(min_delay=1, max_delay=30)
+                    self.socket._reconnect_on_failure = True
 
                 print("R3MonitoringClient: connected to server successfully!")
                 break
@@ -174,7 +176,9 @@ class R3MonitoringClient:
             if self.protocol_type in ["tcp", "udp"]:
                 self.socket.send(bytes_to_send)
             else:
-                self.socket.publish("v1/devices/me/telemetry", bytes_to_send)
+                result, mid = self.socket.publish("v1/devices/me/telemetry", bytes_to_send)
+                if not result == paho.MQTT_ERR_SUCCESS:
+                    self.socket.connect(self.configs.SERVER_IP, self.configs.MQTT_PORT, keepalive=10)  # establish connection
         except Exception as e:
             print(e)
 
