@@ -63,7 +63,7 @@ class R3MonitoringClient:
                 print("R3MonitoringClient: connected to server successfully!")
                 break
             except Exception as e:
-                print(e)
+                print(f"R3MonitoringClient: failed to connect to server | protocol: {self.protocol_type} | {e}")
                 time.sleep(3)
 
         self.buffer_size = self.configs.BUFFER_SIZE
@@ -74,17 +74,18 @@ class R3MonitoringClient:
         signal.signal(signal.SIGUSR2, self.signal_handler)
         signal.signal(signal.SIGHUP, self.signal_handler)
         self.pause_program = False
+        print("R3MonitoringClient: initialized successfully!")
 
     def signal_handler(self, sig, frame):
         if sig == signal.SIGUSR1:
             self.pause_program = True
-            print("Pause program")
+            print("R3MonitoringClient: paused")
         elif sig == signal.SIGUSR2:
             self.pause_program = False
-            print("Resume program")
+            print("R3MonitoringClient: resumed")
         elif sig == signal.SIGHUP:
             self.load_black_list()
-            print("Reload black list topics")
+            print("R3MonitoringClient: Reload black list topics")
 
     def connect_to_ros(self, timeout=10):
         try:
