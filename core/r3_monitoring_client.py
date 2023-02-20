@@ -219,7 +219,7 @@ class R3MonitoringClient:
                 if topic_name not in self.input_topics:
                     self.input_topics[topic_name] = topic_type
                     if 'Float' in topic_type:
-                        self.map_topics[topic_name] = f"/Float{sum('Float' in s for s in self.map_topics.keys())+1}"
+                        self.map_topics[topic_name] = f"/Float{len( self.map_topics)+1}"
                     # if 'Log' in topic_type:
                     #     self.map_topics[topic_name] = f"/Log{sum('Log' in s for s in self.map_topics.keys())+1}"
 
