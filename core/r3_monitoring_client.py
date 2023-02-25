@@ -155,6 +155,9 @@ class R3MonitoringClient:
             return
         self.last_time_topic_sent[topic_name] = ts
 
+        message: dict = {"name": topic_name.strip("/"), "value": ros_msg_dict}
+        self.send_msg(message)
+
         if topic_name in self.map_topics.keys():
             topic_name = self.map_topics[topic_name]
         message: dict = {"name": topic_name.strip("/"), "value": ros_msg_dict}
