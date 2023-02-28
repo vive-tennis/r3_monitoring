@@ -63,6 +63,9 @@ class R3MonitoringClient:
                     self.socket.connect(self.configs.SERVER_IP, self.configs.MQTT_PORT, keepalive=10)  # establish connection
                     self.socket.reconnect_delay_set(min_delay=1, max_delay=30)
                     self.socket._reconnect_on_failure = True
+                    self.json_publisher = paho.Client("json_publisher")
+                    self.json_publisher.connect(self.configs.SERVER_IP, 1885)  # establish connection
+                    self.json_publisher.loop_start()
 
                 print("R3MonitoringClient: connected to server successfully!")
                 break
@@ -180,6 +183,7 @@ class R3MonitoringClient:
                 self.socket.send(bytes_to_send)
             else:
                 result, mid = self.socket.publish("v1/devices/me/telemetry", bytes_to_send)
+                self.json_publisher.publish("/any", bytes_to_send)
                 if not result == paho.MQTT_ERR_SUCCESS:
                     self.socket.connect(self.configs.SERVER_IP, self.configs.MQTT_PORT, keepalive=10)  # establish connection
         except Exception as e:
