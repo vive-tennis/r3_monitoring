@@ -1,7 +1,7 @@
 import paho.mqtt.client as mqtt
 import json
 import rospy
-from core.r3_monitoring_client import get_msg_class
+from core.ros_utils import get_msg_class
 
 try:
     from std_msgs_stamped.msg import StringStamped, Float64Stamped, Float64MultiArrayStamped
