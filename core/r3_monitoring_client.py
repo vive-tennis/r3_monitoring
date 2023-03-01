@@ -183,14 +183,14 @@ class R3MonitoringClient:
                 self.socket.send(bytes_to_send)
             else:
                 result, mid = self.socket.publish("v1/devices/me/telemetry", bytes_to_send)
-                self.json_publisher.publish("/any", bytes_to_send)
+                self.json_publisher.publish(self.configs.ACCESS_TOKEN, bytes_to_send)
                 if not result == paho.MQTT_ERR_SUCCESS:
                     self.socket.connect(self.configs.SERVER_IP, self.configs.MQTT_PORT, keepalive=10)  # establish connection
         except Exception as e:
             print(e)
 
     @staticmethod
-    def get_msg_class(msg_type):
+    def get_msg_class(msg_type: object) -> object:
         """
         Given a ROS message type specified as a string, e.g.
             "std_msgs/Int32"
