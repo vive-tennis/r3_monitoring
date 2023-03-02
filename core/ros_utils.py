@@ -66,7 +66,6 @@ def main():
     print("Is roscore running? {}".format(is_roscore_running()))
 
 
-
 def get_msg_class(msg_type: object) -> object:
     """
     Given a ROS message type specified as a string, e.g.

@@ -37,7 +37,7 @@ def on_message(client, userdata, message):
     try:
         if json_msg['_topic_name'] not in subscribed:
 
-            mesg = get_msg_class(json_msg['_topic_name'])
+            mesg = get_msg_class(json_msg['_topic_type'])
             pub = rospy.Publisher(json_msg['_topic_name'], mesg, queue_size=10)
             mesg = mesg()
 
