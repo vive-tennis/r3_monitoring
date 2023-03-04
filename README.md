@@ -48,6 +48,12 @@ source /opt/ros/melodic/setup.bash
 
 * No need to move the code inside the docker => mount the source code dir on the docker
 
+
+### Get remote topics on local system
+change inputs in ```/core/user_config.py``` file. CLIENT_ID should be match with access_token in remote system. then run ```r3_monotoing_user.py``` on your local system.
+* rosocre should be running on your local system.
+* mosquitto must be running on server on defined port in user_config file.
+
 ## TODO
 
 - [x] Support ROS1
