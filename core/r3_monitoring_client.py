@@ -57,15 +57,21 @@ class R3MonitoringClient:
                     self.udp_images_client_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 
                 if self.protocol_type == "mqtt":
-                    self.socket = paho.Client("control1")  # create client object
-                    self.socket.on_publish = lambda a, b, c: None  # assign function to callback
-                    self.socket.username_pw_set(self.configs.ACCESS_TOKEN)  # access token from thingsboard device
-                    self.socket.connect(self.configs.SERVER_IP, self.configs.MQTT_PORT, keepalive=10)  # establish connection
-                    self.socket.reconnect_delay_set(min_delay=1, max_delay=30)
-                    self.socket._reconnect_on_failure = True
-                    self.json_publisher = paho.Client("json_publisher")
-                    self.json_publisher.connect(self.configs.SERVER_IP, 1885)  # establish connection
-                    self.json_publisher.loop_start()
+                    try:
+                        self.socket = paho.Client("control1")  # create client object
+                        self.socket.on_publish = lambda a, b, c: None  # assign function to callback
+                        self.socket.username_pw_set(self.configs.ACCESS_TOKEN)  # access token from thingsboard device
+                        self.socket.connect(self.configs.SERVER_IP, self.configs.MQTT_PORT, keepalive=10)  # establish connection
+                        self.socket.reconnect_delay_set(min_delay=1, max_delay=30)
+                        self.socket._reconnect_on_failure = True
+                    except Exception as e:
+                        print("cannot connect to thingsboard socket")
+                    try:
+                        self.json_publisher = paho.Client("json_publisher")
+                        self.json_publisher.connect(self.configs.SERVER_IP, 1885)  # establish connection
+                        self.json_publisher.loop_start()
+                    except Exception as e:
+                        print("cannot connect to mosquitto")
 
                 print("R3MonitoringClient: connected to server successfully!")
                 break
@@ -182,10 +188,16 @@ class R3MonitoringClient:
             if self.protocol_type in ["tcp", "udp"]:
                 self.socket.send(bytes_to_send)
             else:
-                result, mid = self.socket.publish("v1/devices/me/telemetry", bytes_to_send)
-                self.json_publisher.publish(self.configs.ACCESS_TOKEN, bytes_to_send)
-                if not result == paho.MQTT_ERR_SUCCESS:
-                    self.socket.connect(self.configs.SERVER_IP, self.configs.MQTT_PORT, keepalive=10)  # establish connection
+                try:
+                    self.json_publisher.publish(self.configs.ACCESS_TOKEN, bytes_to_send)
+                except Exception as e:
+                    pass
+                try:
+                    result, mid = self.socket.publish("v1/devices/me/telemetry", bytes_to_send)
+                    if not result == paho.MQTT_ERR_SUCCESS:
+                        self.socket.connect(self.configs.SERVER_IP, self.configs.MQTT_PORT, keepalive=10)  # establish connection
+                except Exception as e:
+                    pass
         except Exception as e:
             print(e)
 
