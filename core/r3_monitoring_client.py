@@ -167,10 +167,10 @@ class R3MonitoringClient:
         message: dict = {"name": topic_name.strip("/"), "value": ros_msg_dict}
         self.send_msg(message)
 
-        if topic_name in self.map_topics.keys():
-            topic_name = self.map_topics[topic_name]
-        message: dict = {"name": topic_name.strip("/"), "value": ros_msg_dict}
-        self.send_msg(message)
+        # if topic_name in self.map_topics.keys():
+        #     topic_name = self.map_topics[topic_name]
+        # message: dict = {"name": topic_name.strip("/"), "value": ros_msg_dict}
+        # self.send_msg(message)
         print(f"Message Sent: {topic_name}")
 
     def send_msg(self, message):
