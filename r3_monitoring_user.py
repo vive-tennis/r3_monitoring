@@ -13,6 +13,9 @@ except ImportError:
 rospy.init_node('r3_node')
 subscribed = {}
 
+from geometry_msgs.msg import Point
+map_message_attributes_to_class = {'xyz': Point}
+
 
 def Map_messages(json_msg, msg):
     for key in json_msg:
@@ -22,7 +25,14 @@ def Map_messages(json_msg, msg):
             Map_messages(json_msg[key], getattr(msg, key))
         else:
             try:
-                setattr(msg, key, json_msg[key])
+                if isinstance(json_msg[key], list) and len(json_msg[key]) > 0:
+
+                    msg_attributes_concatenated = ''.join(list(json_msg[key][0].keys()))
+                    for i in range(len(json_msg[key])):
+                        continue
+                        #getattr(msg, key).append(map_message_attributes_to_class[msg_attributes_concatenated](json_msg[key][i]))
+                else:
+                    setattr(msg, key, json_msg[key])
             except Exception as e:
                 # print(f'Unknown key: {key}')
                 pass
