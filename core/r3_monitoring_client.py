@@ -21,7 +21,7 @@ else:
 
 
 class R3MonitoringClient:
-    def __init__(self, configs, mosq_port=1883, name="ros_r3_monitoring"):
+    def __init__(self, configs, name="ros_r3_monitoring"):
         self.configs = configs
         self.protocol_type = self.configs.SOCKET_TYPE.lower()
         self.server_images_address_port = self.configs.SERVER_IP, self.configs.IMAGE_PORT
@@ -68,7 +68,7 @@ class R3MonitoringClient:
                         print("cannot connect to thingsboard socket")
                     try:
                         self.json_publisher = paho.Client("json_publisher")
-                        self.json_publisher.connect(self.configs.SERVER_IP, mosq_port)  # establish connection
+                        self.json_publisher.connect(self.configs.SERVER_IP, self.configs.MOSQUITTO_PORT)
                         self.json_publisher.loop_start()
                     except Exception as e:
                         print("cannot connect to mosquitto")
@@ -257,7 +257,7 @@ class R3MonitoringClient:
 def main():
     from core.config import CONFIGS
     from core.user_config import CONFIGS as User_confing
-    r3_monitoring = R3MonitoringClient(CONFIGS, mosq_port=User_confing.MQTT_PORT)
+    r3_monitoring = R3MonitoringClient(CONFIGS)
     # r3_monitoring.load_black_list()
 
     while True:
