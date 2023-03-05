@@ -43,7 +43,7 @@ def on_message(client, userdata, message):
     json_msg = json.loads(message.payload)
     json_msg = json_msg['values']
     json_msg = json_msg[list(json_msg.keys())[0]]
-    # print(f'Received message: {json_msg})')
+    print(f'Received message: {json_msg["_topic_type"]})')
     try:
         if json_msg['_topic_type'] != '*':
             if json_msg['_topic_name'] not in subscribed:
@@ -79,6 +79,7 @@ if __name__ == '__main__':
 
     # Connect to the Mosquitto broker
     client.connect(CONFIGS.SERVER_IP, CONFIGS.MQTT_PORT)
+    print(f'Connected to MOSQUITTO on port {CONFIGS.MQTT_PORT} with IP [{CONFIGS.SERVER_IP}]')
     # Start the network loop
     client.loop_start()
     client.subscribe(CONFIGS.CLIENT_ID)
