@@ -14,7 +14,7 @@ rospy.init_node('r3_node')
 subscribed = {}
 
 from geometry_msgs.msg import Point
-map_message_attributes_to_class = {'xyz': Point}
+map_message_attributes_to_class = {'xyz': Point, 'labelsizestride': 1}
 
 
 def Map_messages(json_msg, msg):
@@ -26,11 +26,18 @@ def Map_messages(json_msg, msg):
         else:
             try:
                 if isinstance(json_msg[key], list) and len(json_msg[key]) > 0:
-
-                    msg_attributes_concatenated = ''.join(list(json_msg[key][0].keys()))
-                    for i in range(len(json_msg[key])):
-                        continue
-                        #getattr(msg, key).append(map_message_attributes_to_class[msg_attributes_concatenated](json_msg[key][i]))
+                    if not any(isinstance(json_msg[key][0], t)for t in [float]):
+                        msg_attributes_concatenated = ''.join(list(json_msg[key][0].keys()))
+                        for i in range(len(json_msg[key])):
+                            continue
+                            # getattr(msg, key).append(map_message_attributes_to_class[msg_attributes_concatenated](*json_msg[key][i]))
+                    else:
+                        att = getattr(msg, key)
+                        for i in range(len(json_msg[key])):
+                            if i >= len(att):
+                                att.append(json_msg[key][i])
+                            else:
+                                att[i] = json_msg[key][i]
                 else:
                     setattr(msg, key, json_msg[key])
             except Exception as e:
@@ -69,7 +76,7 @@ def on_publish(client, userdata, mid):
 
 
 # Set up the MQTT client
-client = mqtt.Client('vive')
+client = mqtt.Client()
 client.on_message = on_message
 client.on_connect = on_connect
 client.on_publish = on_publish
