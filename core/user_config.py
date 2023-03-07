@@ -3,7 +3,7 @@ import os
 
 class Configs: pass
 CONFIGS = Configs()
-CONFIGS.MQTT_PORT = 1885
+CONFIGS.MQTT_PORT = 1888
 
 try:
     CONFIGS.SERVER_IP = os.environ["R3_SERVER_IP"]

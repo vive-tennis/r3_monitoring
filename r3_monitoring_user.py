@@ -69,6 +69,7 @@ def on_message(client, userdata, message):
 
 def on_connect(client, userdata, flags, rc):
     print(f'Connected with result code {rc}')
+    client.subscribe(CONFIGS.CLIENT_ID)
 
 
 def on_publish(client, userdata, mid):
@@ -76,7 +77,7 @@ def on_publish(client, userdata, mid):
 
 
 # Set up the MQTT client
-client = mqtt.Client()
+client = mqtt.Client(protocol=mqtt.MQTTv311)
 client.on_message = on_message
 client.on_connect = on_connect
 client.on_publish = on_publish
@@ -88,9 +89,4 @@ if __name__ == '__main__':
     client.connect(CONFIGS.SERVER_IP, CONFIGS.MQTT_PORT)
     print(f'Connected to MOSQUITTO on port {CONFIGS.MQTT_PORT} with IP [{CONFIGS.SERVER_IP}]')
     # Start the network loop
-    client.loop_start()
-    client.subscribe(CONFIGS.CLIENT_ID)
-
-    # Keep the script running to continue receiving messages
-    while True:
-        pass
+    client.loop_forever()

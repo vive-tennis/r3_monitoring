@@ -67,7 +67,7 @@ class R3MonitoringClient:
                     except Exception as e:
                         print("cannot connect to thingsboard socket")
                     try:
-                        self.json_publisher = paho.Client("json_publisher")
+                        self.json_publisher = paho.Client(protocol=paho.MQTTv311)
                         self.json_publisher.connect(self.configs.SERVER_IP, self.configs.MOSQUITTO_PORT)
                         self.json_publisher.loop_start()
                     except Exception as e:
