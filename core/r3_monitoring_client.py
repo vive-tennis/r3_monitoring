@@ -83,7 +83,7 @@ class R3MonitoringClient:
             if not self.socket_mosquitto.is_connected():
                 self.socket_mosquitto.connect(self.configs.SERVER_IP, self.configs.MOSQUITTO_PORT)
                 self.socket_mosquitto.loop_start()
-                return True
+            return True
         except Exception as e:
             print("Cannot connect to mosquitto: ", e)
             return False
