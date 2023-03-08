@@ -40,7 +40,7 @@ class R3MonitoringClient:
         self.socket_thingsboard.on_publish = lambda a, b, c: None  # assign function to callback
         self.socket_thingsboard.username_pw_set(self.configs.ACCESS_TOKEN)  # token from thingsboard device
 
-        self.protocol_rosboard = self.configs.SOCKET_TYPE.lower()
+        self.protocol_rosboard = self.configs.ROSBOARD_SOCKET.lower()
         if self.protocol_rosboard == "tcp":
             self.server_address_port = self.configs.SERVER_IP, self.configs.TCP_PORT
             self.socket_rosboard = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
