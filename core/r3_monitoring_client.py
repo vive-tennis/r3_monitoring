@@ -34,6 +34,9 @@ class R3MonitoringClient:
         self.black_list_topics_name = []
         self.black_list_topics_type = []
 
+        self.socket = None
+        self.json_publisher = None
+
         if self.protocol_type == "tcp":
             self.server_address_port = self.configs.SERVER_IP, self.configs.TCP_PORT
             self.socket_type = socket.SOCK_STREAM
@@ -42,23 +45,22 @@ class R3MonitoringClient:
             self.socket_type = socket.SOCK_DGRAM
         elif self.protocol_type == "mqtt":
             self.server_address_port = self.configs.SERVER_IP, self.configs.MQTT_PORT
-            pass
         else:
             raise ValueError(f"Invalid socket type: {self.protocol_type}")
 
         start_connecting_time = time.time()
         while time.time() - start_connecting_time < self.configs.CONNECTION_TIMEOUT:
             try:
-                if self.protocol_type in ["tcp", "udp"]:
+                if self.protocol_type in ["tcp", "udp"] and (self.socket is None or self.socket.fileno() < 0):
                     self.socket = socket.socket(family=socket.AF_INET, type=self.socket_type)
                     self.socket.connect(self.server_address_port)
 
                 if self.protocol_type == "udp":
                     self.udp_images_client_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 
-                if self.protocol_type == "mqtt":
+                if self.protocol_type == "mqtt" and (self.socket is None or not self.socket.is_connected()):
                     try:
-                        self.socket = paho.Client("control1")  # create client object
+                        self.socket = paho.Client()  # create client object
                         self.socket.on_publish = lambda a, b, c: None  # assign function to callback
                         self.socket.username_pw_set(self.configs.ACCESS_TOKEN)  # access token from thingsboard device
                         self.socket.connect(self.configs.SERVER_IP, self.configs.MQTT_PORT, keepalive=10)  # establish connection
@@ -66,15 +68,22 @@ class R3MonitoringClient:
                         self.socket._reconnect_on_failure = True
                     except Exception as e:
                         print("cannot connect to thingsboard socket")
+
+                if self.json_publisher is None or not self.json_publisher.is_connected():
                     try:
                         self.json_publisher = paho.Client(protocol=paho.MQTTv311)
                         self.json_publisher.connect(self.configs.SERVER_IP, self.configs.MOSQUITTO_PORT)
                         self.json_publisher.loop_start()
                     except Exception as e:
-                        print("cannot connect to mosquitto")
+                        print("cannot connect to MQTT broker")
 
-                print("R3MonitoringClient: connected to server successfully!")
-                break
+                if self.protocol_type == "mqtt" and self.socket.is_connected() and self.json_publisher.is_connected():
+                    print("R3MonitoringClient: connected to server successfully!")
+                    break
+                elif self.json_publisher.is_connected():
+                    print("R3MonitoringClient: connected to server successfully!")
+                    break
+
             except Exception as e:
                 print(f"R3MonitoringClient: failed to connect to server ({self.protocol_type}): {e}")
                 time.sleep(3)
