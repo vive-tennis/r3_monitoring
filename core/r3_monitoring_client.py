@@ -95,7 +95,7 @@ class R3MonitoringClient:
                 # fixme: not sure these 2 lines are working
                 self.socket_thingsboard.reconnect_delay_set(min_delay=1, max_delay=30)
                 self.socket_thingsboard._reconnect_on_failure = True
-            print("R3MonitoringClient: connected to thingsboard successfully!")
+                print("R3MonitoringClient: connected to thingsboard successfully!")
             return True
         except Exception as e:
             print(f"R3MonitoringClient: failed to connect to server ({self.protocol_rosboard}): {e}")
@@ -103,8 +103,9 @@ class R3MonitoringClient:
 
     def connect_to_rosboard(self) -> bool:
         try:
-            self.socket_rosboard.connect(self.server_address_port)
-            print("R3MonitoringClient: connected to rosboard successfully!")
+            if self.socket_rosboard.fileno() < 0:
+                self.socket_rosboard.connect(self.server_address_port)
+                print("R3MonitoringClient: connected to rosboard successfully!")
             return True
         except Exception as e:
             print("R3MonitoringClient: failed to connect to rosboard: ", e)
@@ -114,6 +115,7 @@ class R3MonitoringClient:
         try:
             if self.socket_images.fileno() < 0:
                 self.socket_images.connect(self.server_images_address_port)
+                print("R3MonitoringClient: connected to images server successfully!")
             return True
         except Exception as e:
             print("Cannot connect to images server: ", e)
