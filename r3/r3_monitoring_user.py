@@ -7,6 +7,7 @@ import importlib
 # sys.path.append("..")
 from core.ros_utils import get_msg_class
 from core.extract_ros_msg_structure import RosMsgStructure
+from core.system_stat import SystemStatLogger, DiagnosticStatus
 
 
 class R3MonitoringUser:
@@ -15,9 +16,16 @@ class R3MonitoringUser:
             rospy.init_node('r3_node')
         except Exception as e:
             print(f'Node already initialized: {str(e)}')
-        self.subscribed = {}
+
+        # map topic_name => {'publisher': publisher, 'message_class': message_class, 'message_object': message_object}
+        self.publishers = {}
+        self.system_stat_publisher = None
         self.map_message_attributes_to_class = {}
-        
+        self.verbose = False
+        self.robot_hostnames = set()
+        self.exclude_hostnames = []
+        self.exclude_topics = []
+
         # Set up the MQTT client
         self.client = mqtt.Client(protocol=mqtt.MQTTv311)
         self.client.on_message = self.on_message
@@ -81,24 +89,36 @@ class R3MonitoringUser:
         json_msg = json_msg['values']
         json_msg = json_msg[list(json_msg.keys())[0]]
         msg_time = json_msg['_time']
+        hostname = json_msg['host_name']
+        topic_name = json_msg['_topic_name']
+        topic_type = json_msg['_topic_type']
+        self.robot_hostnames.add(hostname)
+        if hostname in self.exclude_hostnames:
+            return
+        if topic_name in self.exclude_topics:
+            return
+        if self.verbose:
+            print(f'[{msg_time:.3f}] Received: {topic_name} \t({topic_type})')
 
         try:
-            if json_msg['_topic_type'] != '*':
-                if json_msg['_topic_name'] not in self.subscribed:
-                    message_class = get_msg_class(json_msg['_topic_type'])
-                    publisher = rospy.Publisher(json_msg['_topic_name'], message_class, queue_size=10)
-                    message_object = message_class()
+            if topic_name not in self.publishers:
+                if topic_type == '*':
+                    self.publishers[topic_name] = {'publisher': rospy.Publisher(topic_name, DiagnosticStatus, queue_size=10),
+                                                     'message_class': DiagnosticStatus,
+                                                        'message_object': DiagnosticStatus()}
 
-                    self.subscribed[json_msg['_topic_name']] = {'publisher': publisher,
-                                                                'message_class': message_class,
-                                                                'message_object': message_object}
+                else:
+                    msg_class = get_msg_class(topic_type)
+                    self.publishers[topic_name] = {'publisher': rospy.Publisher(topic_name, msg_class, queue_size=10),
+                                                   'message_class': msg_class,
+                                                   'message_object': msg_class()}
 
-                self.__map_ros_msg__(json_msg, self.subscribed[json_msg['_topic_name']]['message_object'],
-                                     message_class=self.subscribed[json_msg['_topic_name']]['message_class'],
-                                     topic_type=json_msg['_topic_type'])
-                self.subscribed[json_msg['_topic_name']]['publisher'].publish(
-                    self.subscribed[json_msg['_topic_name']]['message_object'])
-                print(f'[{msg_time:.3f}] Received message: {json_msg["_topic_name"]} \t ({json_msg["_topic_type"]}) ')
+            if topic_type == '*':
+                self.publishers[topic_name]['message_object'] = SystemStatLogger.system_stats_to_diagnostic_msg(json_msg)
+            else:
+                self.__map_ros_msg__(json_msg, self.publishers[topic_name]['message_object'],
+                                     message_class=self.publishers[topic_name]['message_class'], topic_type=topic_type)
+            self.publishers[topic_name]['publisher'].publish(self.publishers[topic_name]['message_object'])
 
         except Exception as e:
             print(f"R3MonitoringUser: {str(e)}")
@@ -119,8 +139,8 @@ class R3MonitoringUser:
 
     def terminate(self):
         self.client.disconnect()
-        for topic in self.subscribed:
-            self.subscribed[topic]['publisher'].unregister()
+        for topic in self.publishers:
+            self.publishers[topic]['publisher'].unregister()
 
 
 if __name__ == '__main__':
