@@ -23,8 +23,8 @@ class R3MonitoringUser:
         self.map_message_attributes_to_class = {}
         self.verbose = False
         self.robot_hostnames = set()
-        self.exclude_hostnames = []
-        self.exclude_topics = []
+        self.exclude_hostnames = set()
+        self.exclude_topics = set()
 
         # Set up the MQTT client
         self.client = mqtt.Client(protocol=mqtt.MQTTv311)
