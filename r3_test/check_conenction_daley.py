@@ -39,7 +39,7 @@ client.on_publish = on_publish
 
 
 if __name__ == '__main__':
-    from core.user_config import CONFIGS
+    from r3_configs.config_user import CONFIGS
     # Connect to the broker
     client.connect(CONFIGS.SERVER_IP, CONFIGS.MQTT_PORT)
     # Start the network loop

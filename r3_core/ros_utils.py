@@ -60,9 +60,9 @@ def start_roscore():
 
 def main():
     print("Is roscore running? {}".format(is_roscore_running()))
-    print("Killing roscore... {}".format(kill_roscore()))
+    print("Killing rosr3_core... {}".format(kill_roscore()))
     print("Is roscore running? {}".format(is_roscore_running()))
-    print("Starting roscore... {}".format(start_roscore()))
+    print("Starting rosr3_core... {}".format(start_roscore()))
     print("Is roscore running? {}".format(is_roscore_running()))
 
 

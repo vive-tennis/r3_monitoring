@@ -2,7 +2,7 @@ import rospy
 import cv2
 from sensor_msgs.msg import Image
 
-from core.cv_bridge import imgmsg_to_cv2
+from r3_core.cv_bridge import imgmsg_to_cv2
 
 
 class VideoGStreamer:

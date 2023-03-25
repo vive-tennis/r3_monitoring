@@ -3,7 +3,7 @@ import cv2
 import pafy
 from sensor_msgs.msg import Image
 
-from core.cv_bridge import cv2_to_imgmsg
+from r3_core.cv_bridge import cv2_to_imgmsg
 
 
 class CameraImagePublisher:
