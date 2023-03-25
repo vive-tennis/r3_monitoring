@@ -22,7 +22,7 @@ class Configs:
         self.BUFFER_SIZE = 65535
         self.SEND_IMAGES = False
         self.ROSBOARD_SOCKET = "tcp"
-        self.SEND_FREQ = 0.2  # sec
+        self.SEND_FREQ = 5  # hz
         self.CONNECTION_TIMEOUT = 60  # sec
         self.SERVERS = [  # todo
             'thingsboard',

@@ -196,7 +196,7 @@ class R3MonitoringClient:
         ros_msg_dict["host_name"] = socket.gethostname()
 
         # don't send messages faster than 5 Hz
-        if ts - self.last_time_topic_sent.get(topic_name, 0) < self.configs.SEND_FREQ:
+        if ts - self.last_time_topic_sent.get(topic_name, 0) < 1/self.configs.SEND_FREQ:
             return
         self.last_time_topic_sent[topic_name] = ts
 
