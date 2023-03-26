@@ -2,10 +2,9 @@ import sys
 import time
 from threading import Thread
 from PyQt5.QtWidgets import QApplication
-from core.app_controller import AppController
-from core.r3_monitoring_client import R3MonitoringClient
-from core.config import CONFIGS
-from core.system_stat import SystemStatLogger
+from r3_core.r3_monitoring_client import R3MonitoringClient
+from r3_configs.config_robot import CONFIGS
+from r3_core.system_stat import SystemStatLogger
 
 # add this folder to the python path
 sys.path.append(".")
@@ -22,6 +21,7 @@ def main(with_gui=False):
             time.sleep(3)
 
     if with_gui:
+        from r3_core.app_controller import AppController
         app = QApplication(sys.argv)
         app.setQuitOnLastWindowClosed(False)
         app_controller = AppController(app, r3_monitoring)

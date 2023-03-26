@@ -9,8 +9,8 @@ import json
 import paho.mqtt.client as paho
 import yaml
 
-from core.ros_utils import is_roscore_running
-from core.serialization import ros2dict
+from r3_core.ros_utils import is_roscore_running
+from r3_core.serialization import ros2dict
 from typing import Optional, Union
 
 if os.environ.get("ROS_VERSION") == "1":
@@ -196,7 +196,7 @@ class R3MonitoringClient:
         ros_msg_dict["host_name"] = socket.gethostname()
 
         # don't send messages faster than 5 Hz
-        if ts - self.last_time_topic_sent.get(topic_name, 0) < self.configs.SEND_FREQ:
+        if ts - self.last_time_topic_sent.get(topic_name, 0) < 1/self.configs.SEND_FREQ:
             return
         self.last_time_topic_sent[topic_name] = ts
 
@@ -287,11 +287,11 @@ class R3MonitoringClient:
         self.update_ros_topics()
 
 
-def main():
-    from core.config import CONFIGS
-    from core.user_config import CONFIGS as User_confing
+def test():
+    from r3_core.config import CONFIGS  # r3_monitoring configs
+    CONFIGS.load_from_home()
+    CONFIGS.save_to_home()
     r3_monitoring = R3MonitoringClient(CONFIGS)
-    # r3_monitoring.load_black_list()
 
     while True:
         r3_monitoring.step()
@@ -299,5 +299,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    test()
 

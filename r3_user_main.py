@@ -1,13 +1,14 @@
 import paho.mqtt.client as mqtt
 import json
-import rospy
 import importlib
+import rospy
+from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus
 
 # import sys
 # sys.path.append("..")
-from core.ros_utils import get_msg_class
-from core.extract_ros_msg_structure import RosMsgStructure
-from core.system_stat import SystemStatLogger, DiagnosticStatus
+from r3_core.ros_utils import get_msg_class
+from r3_core.extract_ros_msg_structure import RosMsgStructure
+from r3_core.system_stat import SystemStatLogger
 
 
 class R3MonitoringUser:
@@ -144,8 +145,7 @@ class R3MonitoringUser:
 
 
 if __name__ == '__main__':
-    from core.user_config import CONFIGS
-    r3_monitoring_user = R3MonitoringUser(CONFIGS.CLIENT_ID)
-    r3_monitoring_user.connect(CONFIGS.SERVER_IP, CONFIGS.MQTT_PORT)
+    from r3_configs.config_user import CONFIGS as CONFIGS_USER
+    r3_monitoring_user = R3MonitoringUser(CONFIGS_USER.CLIENT_ID)
+    r3_monitoring_user.connect(CONFIGS_USER.SERVER_IP, CONFIGS_USER.MQTT_PORT)
     r3_monitoring_user.loop()
-
