@@ -1,7 +1,6 @@
 import sys
 import time
 from threading import Thread
-from PyQt5.QtWidgets import QApplication
 from r3_core.r3_monitoring_client import R3MonitoringClient
 from r3_configs.config_robot import CONFIGS
 from r3_core.system_stat import SystemStatLogger
@@ -22,6 +21,7 @@ def main(with_gui=False):
 
     if with_gui:
         from r3_core.app_controller import AppController
+        from PyQt5.QtWidgets import QApplication
         app = QApplication(sys.argv)
         app.setQuitOnLastWindowClosed(False)
         app_controller = AppController(app, r3_monitoring)
