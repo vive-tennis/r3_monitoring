@@ -90,7 +90,7 @@ class R3MonitoringClient:
 
     def connect_to_thingsboard(self) -> bool:
         try:
-            if not self.socket_thingsboard.is_connected():
+            if not self.is_connected_to_thingsboard:
                 self.socket_thingsboard.connect(self.configs.SERVER_IP, self.configs.MQTT_PORT, keepalive=10)
                 # fixme: not sure these 2 lines are working
                 self.socket_thingsboard.reconnect_delay_set(min_delay=1, max_delay=30)
@@ -132,7 +132,7 @@ class R3MonitoringClient:
             return False
 
     def update_ros_topics(self):
-        print("Update topics ...")
+        # print("Update topics ...")
         try:
             current_topics = rospy.get_published_topics()
             for topic_tuple in current_topics:
@@ -152,6 +152,7 @@ class R3MonitoringClient:
                         self.on_ros_msg,
                         callback_args=(topic_name, topic_type),
                     )
+                    print(f"R3MonitoringClient: subscribed to topic {topic_name} ({topic_type})")
 
         except ConnectionRefusedError as cr_error:
             print("R3MonitoringClient: Not connected to ROS!", cr_error)
@@ -196,7 +197,8 @@ class R3MonitoringClient:
         ros_msg_dict["host_name"] = socket.gethostname()
 
         # don't send messages faster than 5 Hz
-        if ts - self.last_time_topic_sent.get(topic_name, 0) < 1/self.configs.SEND_FREQ:
+        if ts - self.last_time_topic_sent.get(topic_name, 0) < 1/float(self.configs.SEND_FREQ) \
+                and not topic_type == "rosgraph_msgs/Log":
             return
         self.last_time_topic_sent[topic_name] = ts
 
@@ -288,7 +290,7 @@ class R3MonitoringClient:
 
 
 def test():
-    from r3_core.config import CONFIGS  # r3_monitoring configs
+    from r3_configs.config_robot import CONFIGS  # r3_monitoring configs
     CONFIGS.load_from_home()
     CONFIGS.save_to_home()
     r3_monitoring = R3MonitoringClient(CONFIGS)
