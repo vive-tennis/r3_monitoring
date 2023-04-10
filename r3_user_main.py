@@ -45,16 +45,16 @@ class R3MonitoringUser:
                 msg_module = msg_type.split(".")[0]
             else:
                 msg_class = msg_type
-                msg_module_search_key = f"/msg/_{msg_class}.py"
-                msg_module = [k for k in sys.modules.keys() if msg_module_search_key in k]
-                result = subprocess.run(['locate', msg_module_search_key], stdout=subprocess.PIPE)
+                search_dir = '/opt/ros'  # Directory to search in
+                result = subprocess.run(['find', search_dir, '-name', f'_{msg_class}.py'], stdout=subprocess.PIPE)
                 result = result.stdout.decode('utf-8')
-                if len(result) > 0:
-                    msg_module = result.split("/")[-3]
+                msg_module = result.split("/")[-3]
             if not msg_module.endswith(".msg"):
                 msg_module = msg_module + ".msg"
             module_ = importlib.import_module(msg_module)
-            return getattr(module_, msg_class)
+            class_ = getattr(module_, msg_class)
+            self.map_message_type_to_class_cached[msg_type] = class_
+            return class_
         except Exception as e:
             rospy.logerr("Error R3MonitoringUser:__import_msg_class__():", e)
             return None
