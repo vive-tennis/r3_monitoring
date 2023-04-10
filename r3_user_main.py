@@ -20,7 +20,6 @@ class R3MonitoringUser:
 
         # map topic_name => {'publisher': publisher, 'message_class': message_class, 'message_object': message_object}
         self.publishers = {}
-        self.system_stat_publisher = None
         self.map_message_attributes_to_class = {}
         self.verbose = False
         self.robot_hostnames = set()
@@ -123,6 +122,18 @@ class R3MonitoringUser:
 
         except Exception as e:
             print(f"R3MonitoringUser: {str(e)}")
+
+    @staticmethod
+    def get_valid_topic_name(name):
+        valid_chars = "abcdefghijklmnopqrstuvwxyz0123456789_/"
+        # Remove any invalid characters
+        name = ''.join(c for c in name.lower() if c in valid_chars)
+        name = name.replace('//', '/')
+        # Add the forward slash at the beginning
+        name = '/' + name if not name.startswith('/') else name
+        # Ensure the name doesn't start with a number
+        name = 'topic' + name if name[1].isdigit() else name
+        return name
 
     def on_connect(self, client, userdata, flags, rc):
         print(f'Connected with result code {rc}')
