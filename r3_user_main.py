@@ -9,8 +9,6 @@ from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus
 # import sys
 # sys.path.append("..")
 from r3_core.ros_utils import get_msg_class
-from r3_core.extract_ros_msg_structure import RosMsgStructure
-from r3_core.system_stat import SystemStatLogger
 
 
 class R3MonitoringUser:
@@ -40,9 +38,9 @@ class R3MonitoringUser:
             return self.map_message_type_to_class_cached[msg_type]
 
         try:
-            if "." in msg_type:
-                msg_class = msg_type.split(".")[1]
-                msg_module = msg_type.split(".")[0]
+            if "/" in msg_type:
+                msg_class = msg_type.split("/")[1]
+                msg_module = msg_type.split("/")[0]
             else:
                 msg_class = msg_type
                 search_dir = '/opt/ros'  # Directory to search in
@@ -75,8 +73,7 @@ class R3MonitoringUser:
                             for i in range(len(json_attrib)):
                                 msg_attrib.append(json_attrib[i])
                         else:
-                            all_msg_attribs = RosMsgStructure().ros_msg_attributes(type(msg))
-                            list_obj_type_name = all_msg_attribs[key].replace('[]', '')
+                            list_obj_type_name = msg._slot_types[msg.__slots__.index(key)].replace('[]', '')
                             list_obj_class = self.__import_msg_class__(list_obj_type_name)
                             for i in range(len(json_attrib)):
                                 sub_msg = list_obj_class()
