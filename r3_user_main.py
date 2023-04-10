@@ -103,12 +103,13 @@ class R3MonitoringUser:
             print(f'[{msg_time:.3f}] Received: {topic_name} \t({topic_type})')
 
         try:
-            if topic_type in ["rosgraph_msgs/Log"]:  # , "tf2_msgs/TFMessage"]:
+            if topic_type in ["rosgraph_msgs/Log", "tf2_msgs/TFMessage"]:
                 topic_name_out = topic_name  # don't change topic name
                 msg_class = get_msg_class(topic_type)
             elif topic_type == '*':  # system stats
                 topic_name_out = self.get_valid_topic_name(f'/r3/{hostname}/system_stats')
                 msg_class = DiagnosticArray
+                return
             else:
                 topic_name_out = self.get_valid_topic_name(f'/r3/{hostname}/{topic_name}')
                 msg_class = get_msg_class(topic_type)
