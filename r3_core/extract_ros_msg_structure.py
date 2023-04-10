@@ -10,7 +10,7 @@ class RosMsgStructure:
         except Exception as e:
             raise Exception("RosMsgStructure: Error in finding ROS version: " + str(e))
 
-    def ros_msg_attributes(self, msg_type):
+    def ros_msg_attributes(self, msg_type, module_name):
         mmodule = str(msg_type.__module__)  # e.g. 'sensor_msgs.msg._Image'
         last_underscore_idx = mmodule.rfind("_")  # find the last underscore and remove it
         msg_file = self.ros_root_folder + (mmodule[0:last_underscore_idx] +
@@ -24,9 +24,13 @@ class RosMsgStructure:
         for line in lines:
             if line[0] == "#" or line[0] == "\n" or line[0] == " " or line[0] == "\t" or line[0] == "/":
                 continue
+            if "[] "+module_name in line:
+                split_form_line = line
+                split_form_line = split_form_line.replace('"','').replace("\n","").replace("[] "+module_name, '').split("/")
+                return split_form_line[0], split_form_line[1]
             splitted_line = line.split(" ")
             splitted_line = [x for x in splitted_line if x != ""]
-            attributes[splitted_line[1].replace("\n", "")] = splitted_line[0].replace("/", ".")
+            attributes[splitted_line[1].replace("\n", "").split("=")[0]] = splitted_line[0].replace("/", ".")
 
         return attributes
 

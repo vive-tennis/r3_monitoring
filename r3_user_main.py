@@ -61,13 +61,16 @@ class R3MonitoringUser:
                 try:
                     if isinstance(json_msg[key], list) and len(json_msg[key]) > 0:
                         if not any(isinstance(json_msg[key][0], t) for t in [float]):
-                            list_type_name = RosMsgStructure().ros_msg_attributes(message_class)
+                            # list_type_name = RosMsgStructure().ros_msg_attributes(message_class, key)
                             # self.map_message_attributes_to_class has a mapping of list types to ros message classes
-                            if list_type_name in self.map_message_attributes_to_class:
-                                list_type = self.map_message_attributes_to_class[list_type_name]
+                            if topic_type+"_"+key in self.map_message_attributes_to_class:
+                                list_type = self.map_message_attributes_to_class[topic_type+"_"+key]
                             else:
-                                list_type = self.__import_msg_class__(topic_type, list_type_name)
-                                self.map_message_attributes_to_class[list_type_name] = list_type
+                                import_from, import_module = RosMsgStructure().ros_msg_attributes(message_class, key)
+                                # list_type = self.__import_msg_class__(topic_type, list_type_name[key.upper()])
+                                _module = importlib.import_module(import_from+".msg")
+                                list_type = getattr(_module, import_module)
+                                self.map_message_attributes_to_class[topic_type+"_"+key] = list_type
                             # msg_attributes_concatenated = ''.join(list(json_msg[key][0].keys()))
                             for i in range(len(json_msg[key])):
                                 getattr(msg, key).append(list_type(*json_msg[key][i]))
@@ -100,7 +103,8 @@ class R3MonitoringUser:
             return
         if self.verbose:
             print(f'[{msg_time:.3f}] Received: {topic_name} \t({topic_type})')
-
+        if topic_name == "/tf":
+            dom = 1
         try:
             if topic_name not in self.publishers:
                 if topic_type == '*':
