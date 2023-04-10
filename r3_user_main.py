@@ -1,3 +1,5 @@
+import sys
+import subprocess
 import paho.mqtt.client as mqtt
 import json
 import importlib
@@ -20,7 +22,7 @@ class R3MonitoringUser:
 
         # map topic_name => {'publisher': publisher, 'message_class': message_class, 'message_object': message_object}
         self.publishers = {}
-        self.map_message_attributes_to_class = {}
+        self.map_message_type_to_class_cached = {}
         self.verbose = False
         self.robot_hostnames = set()
         self.exclude_hostnames = set()
@@ -33,55 +35,58 @@ class R3MonitoringUser:
         self.client.on_publish = self.on_publish
         self.client_id = client_id
 
-    @staticmethod
-    def __import_msg_class__(msg_type, name):
-        try:
-            msg_module, dummy, msg_class_name = msg_type.replace("/", ".").rpartition(".")
-        except ValueError:
-            print("invalid type %s" % msg_type)
-            return None
+    def __import_msg_class__(self, msg_type: str):
+        if msg_type in self.map_message_type_to_class_cached:
+            return self.map_message_type_to_class_cached[msg_type]
 
         try:
+            if "." in msg_type:
+                msg_class = msg_type.split(".")[1]
+                msg_module = msg_type.split(".")[0]
+            else:
+                msg_class = msg_type
+                msg_module_search_key = f"/msg/_{msg_class}.py"
+                msg_module = [k for k in sys.modules.keys() if msg_module_search_key in k]
+                result = subprocess.run(['locate', msg_module_search_key], stdout=subprocess.PIPE)
+                result = result.stdout.decode('utf-8')
+                if len(result) > 0:
+                    msg_module = result.split("/")[-3]
             if not msg_module.endswith(".msg"):
                 msg_module = msg_module + ".msg"
             module_ = importlib.import_module(msg_module)
-            return getattr(module_, name)
+            return getattr(module_, msg_class)
         except Exception as e:
-            print(str(e))
+            rospy.logerr("Error R3MonitoringUser:__import_msg_class__():", e)
             return None
 
-    def __map_ros_msg__(self, json_msg, msg, message_class=None, topic_type=None):
+    def json_to_ros(self, json_msg, msg):
         for key in json_msg:
-            if key == '_topic_name' or key == '_topic_type':
+            if key in ['_topic_name', '_topic_type', '_time', 'utc_time', 'host_name', '__len__']:  # ignore these keys
                 continue
-            if isinstance(json_msg[key], dict):
-                self.__map_ros_msg__(json_msg[key], getattr(msg, key), message_class=message_class, topic_type=topic_type, )
+            json_attrib = json_msg[key]
+            if isinstance(json_attrib, dict):
+                self.json_to_ros(json_attrib, getattr(msg, key))
             else:
                 try:
-                    if isinstance(json_msg[key], list) and len(json_msg[key]) > 0:
-                        if not any(isinstance(json_msg[key][0], t) for t in [float]):
-                            list_type_name = RosMsgStructure().ros_msg_attributes(message_class)
-                            # self.map_message_attributes_to_class has a mapping of list types to ros message classes
-                            if list_type_name in self.map_message_attributes_to_class:
-                                list_type = self.map_message_attributes_to_class[list_type_name]
-                            else:
-                                list_type = self.__import_msg_class__(topic_type, list_type_name)
-                                self.map_message_attributes_to_class[list_type_name] = list_type
-                            # msg_attributes_concatenated = ''.join(list(json_msg[key][0].keys()))
-                            for i in range(len(json_msg[key])):
-                                getattr(msg, key).append(list_type(*json_msg[key][i]))
+                    if isinstance(json_attrib, list) and len(json_attrib) > 0:
+                        msg_attrib = getattr(msg, key)
+                        if any(isinstance(json_attrib[0], t) for t in [float]):
+                            msg_attrib.clear()
+                            for i in range(len(json_attrib)):
+                                msg_attrib.append(json_attrib[i])
                         else:
-                            att = getattr(msg, key)
-                            for i in range(len(json_msg[key])):
-                                if i >= len(att):
-                                    att.append(json_msg[key][i])
-                                else:
-                                    att[i] = json_msg[key][i]
+                            all_msg_attribs = RosMsgStructure().ros_msg_attributes(type(msg))
+                            list_obj_type_name = all_msg_attribs[key].replace('[]', '')
+                            list_obj_class = self.__import_msg_class__(list_obj_type_name)
+                            for i in range(len(json_attrib)):
+                                sub_msg = list_obj_class()
+                                self.json_to_ros(json_attrib[i], sub_msg)
+                                msg_attrib.append(sub_msg)
+
                     else:
-                        setattr(msg, key, json_msg[key])
+                        setattr(msg, key, json_attrib)
                 except Exception as e:
-                    # print(f'Unknown key: {key}')
-                    pass
+                    rospy.logerr(f'R3MonitoringUser:json_to_ros(): {str(e)}')
 
     # Define callback functions for handling messages and client connections
     def on_message(self, client, userdata, message):
@@ -101,24 +106,23 @@ class R3MonitoringUser:
             print(f'[{msg_time:.3f}] Received: {topic_name} \t({topic_type})')
 
         try:
-            if topic_name not in self.publishers:
-                if topic_type == '*':
-                    self.publishers[topic_name] = {'publisher': rospy.Publisher(topic_name, DiagnosticStatus, queue_size=10),
-                                                     'message_class': DiagnosticStatus,
-                                                        'message_object': DiagnosticStatus()}
-
-                else:
-                    msg_class = get_msg_class(topic_type)
-                    self.publishers[topic_name] = {'publisher': rospy.Publisher(topic_name, msg_class, queue_size=10),
-                                                   'message_class': msg_class,
-                                                   'message_object': msg_class()}
-
-            if topic_type == '*':
-                self.publishers[topic_name]['message_object'] = SystemStatLogger.system_stats_to_diagnostic_msg(json_msg)
+            if topic_type in ["rosgraph_msgs/Log"]:  # , "tf2_msgs/TFMessage"]:
+                topic_name_out = topic_name  # don't change topic name
+                msg_class = get_msg_class(topic_type)
+            elif topic_type == '*':  # system stats
+                topic_name_out = self.get_valid_topic_name(f'/r3/{hostname}/system_stats')
+                msg_class = DiagnosticArray
             else:
-                self.__map_ros_msg__(json_msg, self.publishers[topic_name]['message_object'],
-                                     message_class=self.publishers[topic_name]['message_class'], topic_type=topic_type)
-            self.publishers[topic_name]['publisher'].publish(self.publishers[topic_name]['message_object'])
+                topic_name_out = self.get_valid_topic_name(f'/r3/{hostname}/{topic_name}')
+                msg_class = get_msg_class(topic_type)
+
+            if topic_name_out not in self.publishers:
+                self.publishers[topic_name_out] = {'publisher': rospy.Publisher(topic_name_out, msg_class, queue_size=10),
+                                                   'message_class': msg_class}
+
+            msg = self.publishers[topic_name_out]['message_class']()
+            self.json_to_ros(json_msg, msg)
+            self.publishers[topic_name_out]['publisher'].publish(msg)
 
         except Exception as e:
             print(f"R3MonitoringUser: {str(e)}")
