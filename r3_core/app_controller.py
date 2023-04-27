@@ -7,7 +7,7 @@ from .ros_utils import is_roscore_running, kill_roscore, start_roscore
 
 
 class AppController(QObject):
-    def __init__(self, app_ptr: "QApplication", r3_monitoring_client_ptr: "R3MonitoringClient"):
+    def __init__(self, app_ptr: "QApplication", r3_monitoring_client_ptr):
         super().__init__()
         self.app = app_ptr
         self._r3_monitoring_client = r3_monitoring_client_ptr

@@ -7,6 +7,7 @@ import psutil
 
 from .wifi_utils import get_wifi_interface, get_wifi_ssid_name, get_wifi_ip
 from .disk_utils import get_disks_and_usage
+from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 
 
 class SystemStatLogger:
@@ -49,6 +50,17 @@ class SystemStatLogger:
 
         message = {"name": "SystemStat", "value": message_value}
         return message
+
+    @staticmethod
+    def system_stats_to_diagnostic_msg(msg) -> DiagnosticStatus:
+        diagnostic_msg = DiagnosticStatus()
+        diagnostic_msg.name = "SystemStat"
+        diagnostic_msg.level = 0
+        diagnostic_msg.message = "OK"
+        diagnostic_msg.hardware_id = msg["host_name"]
+        diagnostic_msg.values = [KeyValue(key=k, value=str(v)) for k, v in msg.items()]
+        # print(diagnostic_msg)
+        return diagnostic_msg
 
 
 if __name__ == '__main__':

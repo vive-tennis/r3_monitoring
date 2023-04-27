@@ -9,8 +9,8 @@ import json
 import paho.mqtt.client as paho
 import yaml
 
-from core.ros_utils import is_roscore_running
-from core.serialization import ros2dict
+from r3_core.ros_utils import is_roscore_running
+from r3_core.serialization import ros2dict
 from typing import Optional, Union
 
 if os.environ.get("ROS_VERSION") == "1":
@@ -40,7 +40,7 @@ class R3MonitoringClient:
         self.socket_thingsboard.on_publish = lambda a, b, c: None  # assign function to callback
         self.socket_thingsboard.username_pw_set(self.configs.ACCESS_TOKEN)  # token from thingsboard device
 
-        self.protocol_rosboard = self.configs.SOCKET_TYPE.lower()
+        self.protocol_rosboard = self.configs.ROSBOARD_SOCKET.lower()
         if self.protocol_rosboard == "tcp":
             self.server_address_port = self.configs.SERVER_IP, self.configs.TCP_PORT
             self.socket_rosboard = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
@@ -83,19 +83,19 @@ class R3MonitoringClient:
             if not self.socket_mosquitto.is_connected():
                 self.socket_mosquitto.connect(self.configs.SERVER_IP, self.configs.MOSQUITTO_PORT)
                 self.socket_mosquitto.loop_start()
-                return True
+            return True
         except Exception as e:
             print("Cannot connect to mosquitto: ", e)
             return False
 
     def connect_to_thingsboard(self) -> bool:
         try:
-            if not self.socket_thingsboard.is_connected():
+            if not self.is_connected_to_thingsboard:
                 self.socket_thingsboard.connect(self.configs.SERVER_IP, self.configs.MQTT_PORT, keepalive=10)
                 # fixme: not sure these 2 lines are working
                 self.socket_thingsboard.reconnect_delay_set(min_delay=1, max_delay=30)
                 self.socket_thingsboard._reconnect_on_failure = True
-            print("R3MonitoringClient: connected to thingsboard successfully!")
+                print("R3MonitoringClient: connected to thingsboard successfully!")
             return True
         except Exception as e:
             print(f"R3MonitoringClient: failed to connect to server ({self.protocol_rosboard}): {e}")
@@ -103,8 +103,9 @@ class R3MonitoringClient:
 
     def connect_to_rosboard(self) -> bool:
         try:
-            self.socket_rosboard.connect(self.server_address_port)
-            print("R3MonitoringClient: connected to rosboard successfully!")
+            if self.socket_rosboard.fileno() < 0:
+                self.socket_rosboard.connect(self.server_address_port)
+                print("R3MonitoringClient: connected to rosboard successfully!")
             return True
         except Exception as e:
             print("R3MonitoringClient: failed to connect to rosboard: ", e)
@@ -114,6 +115,7 @@ class R3MonitoringClient:
         try:
             if self.socket_images.fileno() < 0:
                 self.socket_images.connect(self.server_images_address_port)
+                print("R3MonitoringClient: connected to images server successfully!")
             return True
         except Exception as e:
             print("Cannot connect to images server: ", e)
@@ -130,7 +132,7 @@ class R3MonitoringClient:
             return False
 
     def update_ros_topics(self):
-        print("Update topics ...")
+        # print("Update topics ...")
         try:
             current_topics = rospy.get_published_topics()
             for topic_tuple in current_topics:
@@ -150,6 +152,7 @@ class R3MonitoringClient:
                         self.on_ros_msg,
                         callback_args=(topic_name, topic_type),
                     )
+                    print(f"R3MonitoringClient: subscribed to topic {topic_name} ({topic_type})")
 
         except ConnectionRefusedError as cr_error:
             print("R3MonitoringClient: Not connected to ROS!", cr_error)
@@ -195,7 +198,8 @@ class R3MonitoringClient:
         ros_msg_dict["host_name"] = self.configs.ACCESS_TOKEN
 
         # don't send messages faster than 5 Hz
-        if ts - self.last_time_topic_sent.get(topic_name, 0) < self.configs.SEND_FREQ:
+        if ts - self.last_time_topic_sent.get(topic_name, 0) < 1/float(self.configs.SEND_FREQ) \
+                and not topic_type == "rosgraph_msgs/Log":
             return
         self.last_time_topic_sent[topic_name] = ts
 
@@ -286,11 +290,11 @@ class R3MonitoringClient:
         self.update_ros_topics()
 
 
-def main():
-    from core.config import CONFIGS
-    from core.user_config import CONFIGS as User_confing
+def test():
+    from r3_configs.config_robot import CONFIGS  # r3_monitoring configs
+    CONFIGS.load_from_home()
+    CONFIGS.save_to_home()
     r3_monitoring = R3MonitoringClient(CONFIGS)
-    # r3_monitoring.load_black_list()
 
     while True:
         r3_monitoring.step()
@@ -298,5 +302,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    test()
 
