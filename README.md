@@ -1,3 +1,4 @@
+
 # Vive R3 Monitoring 
 (Realtime Remote Robot Monitoring Toolbox based on ROS)
 
@@ -57,12 +58,12 @@ change inputs in ```/core/user_config.py``` file. CLIENT_ID should be match with
 ## TODO
 
 - [x] Support ROS1
-- [x] Appear Program in Tray Bar
-- [x] Switch to PyQt for smoother integration
+- [x] ~~Appear Program in Tray Bar~~
+- [x] ~~Switch to PyQt for smoother integration~~
+- [x] Add Client RQT Plugin
 - [x] Show List of topics by name/type to include/exclude
 - [ ] Make it a linux daemon
 - [x] Start/Stop ROS Core
-- [ ] Setup a basic web-server (e.g. Flask) instead of the PyQt GUI
 - [ ] Add REPL Terminal
 - [ ] Support ROS2 
   - [ ] change docker base to `ros:foxy-ros1-bridge`
