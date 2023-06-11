@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>r3_monitoring</name>
+  <version>0.1.0</version>
+  <description>Monitoring Robot Remotely in Realtime</description>
+
+  <maintainer email="amiryan.j@gmail.com">Javad Amirian</maintainer>
+  <license>MIT License</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- Add any package dependencies below -->
+  <depend>rospy</depend>
+
+  <!-- Add any message/service/package dependencies below -->
+  <!-- <build_depend>other_package</build_depend> -->
+  <!-- <exec_depend>other_package</exec_depend> -->
+
+</package>

@@ -82,7 +82,7 @@ class R3MonitoringUser:
 
                     else:
                         setattr(msg, key, json_attrib)
-                except Exception as e:
+                except ImportError as e:
                     rospy.logerr(f'R3MonitoringUser:json_to_ros(): {str(e)}')
 
     # Define callback functions for handling messages and client connections
@@ -109,7 +109,7 @@ class R3MonitoringUser:
             elif topic_type == '*':  # system stats
                 topic_name_out = self.get_valid_topic_name(f'/r3/{hostname}/system_stats')
                 msg_class = DiagnosticArray
-                return
+                # return
             else:
                 topic_name_out = self.get_valid_topic_name(f'/r3/{hostname}/{topic_name}')
                 msg_class = get_msg_class(topic_type)
