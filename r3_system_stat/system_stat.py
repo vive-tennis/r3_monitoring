@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 
+import sys
 import time
 import socket
 from datetime import datetime
 import psutil
 
-from .wifi_utils import get_wifi_interface, get_wifi_ssid_name, get_wifi_ip
-from .disk_utils import get_disks_and_usage
+sys.path.append('.')
+
+from wifi_utils import get_wifi_interface, get_wifi_ssid_name, get_wifi_ip
+from disk_utils import get_disks_and_usage
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 
 
@@ -14,7 +17,7 @@ class SystemStatLogger:
     def __init__(self, rate=2):
         self.rate = rate
 
-    def create_msg(self):
+    def create_stat_dict(self):
         ts = time.time()
         message_value = {"_time": ts * 1000}
         message_value["_topic_name"] = "/SystemStat"
@@ -57,7 +60,7 @@ class SystemStatLogger:
         diagnostic_msg.name = "SystemStat"
         diagnostic_msg.level = 0
         diagnostic_msg.message = "OK"
-        diagnostic_msg.hardware_id = msg["host_name"]
+        diagnostic_msg.hardware_id = msg["value"]["host_name"]
         diagnostic_msg.values = [KeyValue(key=k, value=str(v)) for k, v in msg.items()]
         # print(diagnostic_msg)
         return diagnostic_msg
@@ -67,6 +70,7 @@ if __name__ == '__main__':
     logger = SystemStatLogger()
 
     while True:
-        msg = logger.create_msg()
-        print(msg)
+        stat_dict = logger.create_stat_dict()
+        stat_msg = logger.system_stats_to_diagnostic_msg(stat_dict)
+        print(stat_dict)
         time.sleep(1)

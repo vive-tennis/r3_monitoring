@@ -14,7 +14,6 @@ class VideoGStreamer:
         self.img_size = (640, 360)  # (width, height)
         self.frame_rate = int(10)  # fps: which I guess is not important
         self.bitrate = 240  # kbps?
-        self.server_rtmp_url = "rtmp://188.34.154.208:1937/live/test"
         self.server_rtmp_url = "rtmp://vivernd.com:1937/live/test"
 
         self.rate = rospy.Rate(self.frame_rate)
