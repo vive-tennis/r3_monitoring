@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+
+<!--    TODO  -->
+<!--        read config file-->
+<!--        <arg name="config" default="$(find r3_monitoring)/r3_config/config_robot.yaml"/>-->
+
+        <node name="r3-robot" pkg="r3_monitoring" type="r3_robot" output="screen"/>
+        <node name="r3-stats" pkg="r3_monitoring" type="r3_system_stat" output="screen"/>
+
+<!--    TODO  -->
+<!--        <node name="r3-rosbag" pkg="r3_monitoring" type="r3_rosbag" output="screen"/>-->
+
+</launch>
