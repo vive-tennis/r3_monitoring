@@ -7,28 +7,20 @@ from datetime import datetime
 import socket
 import json
 import paho.mqtt.client as paho
-import yaml
 
 from r3_monitoring.core.ros_utils import is_roscore_running
 from r3_monitoring.core.serialization import ros2dict
-from typing import Optional, Union
 
 if os.environ.get("ROS_VERSION") == "1":
     import rospy  # ROS1
-    import rospkg
-    import rosparam
 else:
     print("ROS not detected. Please source your ROS environment\n(e.g. 'source /opt/ros/DISTRO/setup.bash')")
     exit(1)
 
 
-class R3MonitoringClient:
-    def __init__(self, name="ros_r3_monitoring"):
-        robot_config_file = rospkg.RosPack().get_path('r3_monitoring') + "/config/config_robot.yaml"
-        paramlist = rosparam.load_file(robot_config_file, default_namespace="/r3_monitoring_robot")
-        for params, ns in paramlist:
-            rosparam.upload_params(ns, params)
-        self.config = rospy.get_param("/r3_monitoring_robot")
+class R3MonitoringRobot:
+    def __init__(self, config, name="ros_r3_monitoring"):
+        self.config = config
 
         self.server_images_address_port = self.config["SERVER_IP"], self.config["IMAGE_PORT"]
         self.name = name  # used for ROS node name
@@ -72,18 +64,18 @@ class R3MonitoringClient:
         signal.signal(signal.SIGUSR1, self.signal_handler)
         signal.signal(signal.SIGUSR2, self.signal_handler)
         signal.signal(signal.SIGHUP, self.signal_handler)
-        print("R3MonitoringClient: initialized successfully!")
+        print("R3MonitoringRobot: initialized successfully!")
 
     def signal_handler(self, sig, frame):
         if sig == signal.SIGUSR1:
             self.pause_logging = True
-            print("R3MonitoringClient: paused")
+            print("R3MonitoringRobot: paused")
         elif sig == signal.SIGUSR2:
             self.pause_logging = False
-            print("R3MonitoringClient: resumed")
+            print("R3MonitoringRobot: resumed")
         elif sig == signal.SIGHUP:
             # self.load_black_list()
-            print("R3MonitoringClient: Reload black list topics")
+            print("R3MonitoringRobot: Reload black list topics")
 
     def connect_to_mosquitto(self) -> bool:
         try:
@@ -102,27 +94,27 @@ class R3MonitoringClient:
                 # fixme: not sure these 2 lines are working
                 self.socket_thingsboard.reconnect_delay_set(min_delay=1, max_delay=30)
                 self.socket_thingsboard._reconnect_on_failure = True
-                print("R3MonitoringClient: connected to thingsboard successfully!")
+                print("R3MonitoringRobot: connected to thingsboard successfully!")
             return True
         except Exception as e:
-            print(f"R3MonitoringClient: failed to connect to server ({self.protocol_rosboard}): {e}")
+            print(f"R3MonitoringRobot: failed to connect to server ({self.protocol_rosboard}): {e}")
             return False
 
     def connect_to_rosboard(self) -> bool:
         try:
             if self.socket_rosboard.fileno() < 0:
                 self.socket_rosboard.connect(self.server_address_port)
-                print("R3MonitoringClient: connected to rosboard successfully!")
+                print("R3MonitoringRobot: connected to rosboard successfully!")
             return True
         except Exception as e:
-            print("R3MonitoringClient: failed to connect to rosboard: ", e)
+            print("R3MonitoringRobot: failed to connect to rosboard: ", e)
             return False
 
     def connect_to_images_server(self) -> bool:  # fixme
         try:
             if self.socket_images.fileno() < 0:
                 self.socket_images.connect(self.server_images_address_port)
-                print("R3MonitoringClient: connected to images server successfully!")
+                print("R3MonitoringRobot: connected to images server successfully!")
             return True
         except Exception as e:
             print("Cannot connect to images server: ", e)
@@ -132,10 +124,10 @@ class R3MonitoringClient:
         try:
             if is_roscore_running():
                 rospy.init_node(self.name, anonymous=True)
-                print("R3MonitoringClient: connected to roscore successfully!")
+                print("R3MonitoringRobot: connected to roscore successfully!")
                 return True
         except Exception as e:
-            print("R3MonitoringClient: failed to connect to roscore: ", e)
+            print("R3MonitoringRobot: failed to connect to roscore: ", e)
             return False
 
     def update_ros_topics(self):
@@ -159,10 +151,10 @@ class R3MonitoringClient:
                         self.on_ros_msg,
                         callback_args=(topic_name, topic_type),
                     )
-                    print(f"R3MonitoringClient: subscribed to topic {topic_name} ({topic_type})")
+                    print(f"R3MonitoringRobot: subscribed to topic {topic_name} ({topic_type})")
 
         except ConnectionRefusedError as cr_error:
-            print("R3MonitoringClient: Not connected to ROS!", cr_error)
+            print("R3MonitoringRobot: Not connected to ROS!", cr_error)
 
     def pause(self):
         self.pause_logging = True
@@ -253,7 +245,7 @@ class R3MonitoringClient:
             elif self.protocol_rosboard == "udp":  # UDP
                 bytes_to_send = str.encode(json.dumps(data))
             else:
-                print("R3MonitoringClient: unknown protocol")
+                print("R3MonitoringRobot: unknown protocol")
                 return
             self.socket_rosboard.send(bytes_to_send)
             return True
@@ -298,7 +290,7 @@ class R3MonitoringClient:
 
 
 def test():
-    r3_monitoring = R3MonitoringClient()
+    r3_monitoring = R3MonitoringRobot()
 
     while True:
         r3_monitoring.step()

@@ -11,7 +11,7 @@ import rospy
 from python_qt_binding import loadUi
 from qt_gui.plugin import Plugin
 from std_msgs.msg import String
-from r3_user_main import R3MonitoringUser
+from r3_monitoring.core.user_receiver import R3MonitoringUser
 import random
 
 
@@ -21,7 +21,9 @@ class R3MonitoringPlugin(Plugin):
         self.setObjectName('R3MonitoringPlugin')
 
         self._widget = QWidget()
-        ui_file = os.path.join(rospkg.RosPack().get_path('rqt_vive'), 'resource', 'rqt_r3_monitoring.ui')
+        package_path = rospkg.RosPack().get_path('r3_monitoring')
+        print("Package path: ", package_path)
+        ui_file = os.path.join(package_path, 'resource', 'rqt_r3_monitoring.ui')
         loadUi(ui_file, self._widget)
 
         # Give QObjects reasonable names
