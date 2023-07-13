@@ -2,7 +2,7 @@
 <package format="2">
   <name>r3_monitoring</name>
   <version>0.1.0</version>
-  <description>Monitoring Robot Remotely in Realtime</description>
+  <description>Remote Realtime Robot Monitoring</description>
 
   <maintainer email="amiryan.j@gmail.com">Javad Amirian</maintainer>
   <license>MIT License</license>
@@ -11,9 +11,16 @@
 
   <!-- Add any package dependencies below -->
   <depend>rospy</depend>
+  <depend>std_msgs</depend>
+  <depend>rqt_gui</depend>
+  <depend>rqt_gui_py</depend>
 
   <!-- Add any message/service/package dependencies below -->
   <!-- <build_depend>other_package</build_depend> -->
   <!-- <exec_depend>other_package</exec_depend> -->
+
+    <export>
+      <rqt_gui plugin="${prefix}/plugin.xml"/>
+    </export>
 
 </package>

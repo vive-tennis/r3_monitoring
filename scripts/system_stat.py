@@ -8,8 +8,8 @@ import psutil
 
 sys.path.append('.')
 
-from r3_system_stat.wifi_utils import get_wifi_interface, get_wifi_ssid_name, get_wifi_ip
-from r3_system_stat.disk_utils import get_disks_and_usage
+from r3_monitoring.utils.wifi_utils import get_wifi_interface, get_wifi_ssid_name, get_wifi_ip
+from r3_monitoring.utils.disk_utils import get_disks_and_usage
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 
 

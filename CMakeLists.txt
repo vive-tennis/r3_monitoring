@@ -11,6 +11,11 @@ catkin_package(
   CATKIN_DEPENDS rospy
 )
 
+catkin_install_python(PROGRAMS
+  scripts/rqt_r3_monitoring
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
 install(
   DIRECTORY scripts
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

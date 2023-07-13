@@ -1,0 +1,10 @@
+<library path="src">
+  <class name="PluginR3Monitoring" type="rqt_r3_monitoring.r3_monitoring_plugin.R3MonitoringPlugin" base_class_type="rqt_gui_py::Plugin">
+    <description>R3 Monitoring (Client) RQT Plugin</description>
+    <group>Visualization</group>
+    <qtgui>
+      <label>R3 Monitoring</label>
+      <statustip>R3 Monitoring (Client) RQT Plugin</statustip>
+    </qtgui>
+  </class>
+</library>
