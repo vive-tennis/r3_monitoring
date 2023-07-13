@@ -9,21 +9,28 @@ import json
 import paho.mqtt.client as paho
 import yaml
 
-from r3_core.ros_utils import is_roscore_running
-from r3_core.serialization import ros2dict
+from r3_monitoring.core.ros_utils import is_roscore_running
+from r3_monitoring.core.serialization import ros2dict
 from typing import Optional, Union
 
 if os.environ.get("ROS_VERSION") == "1":
     import rospy  # ROS1
+    import rospkg
+    import rosparam
 else:
     print("ROS not detected. Please source your ROS environment\n(e.g. 'source /opt/ros/DISTRO/setup.bash')")
     exit(1)
 
 
 class R3MonitoringClient:
-    def __init__(self, configs, name="ros_r3_monitoring"):
-        self.configs = configs
-        self.server_images_address_port = self.configs.SERVER_IP, self.configs.IMAGE_PORT
+    def __init__(self, name="ros_r3_monitoring"):
+        robot_config_file = rospkg.RosPack().get_path('r3_monitoring') + "/config/config_robot.yaml"
+        paramlist = rosparam.load_file(robot_config_file, default_namespace="/r3_monitoring_robot")
+        for params, ns in paramlist:
+            rosparam.upload_params(ns, params)
+        self.config = rospy.get_param("/r3_monitoring_robot")
+
+        self.server_images_address_port = self.config["SERVER_IP"], self.config["IMAGE_PORT"]
         self.name = name  # used for ROS node name
 
         self.input_topics = {}
@@ -38,14 +45,14 @@ class R3MonitoringClient:
 
         self.socket_thingsboard = paho.Client()  # create client object
         self.socket_thingsboard.on_publish = lambda a, b, c: None  # assign function to callback
-        self.socket_thingsboard.username_pw_set(self.configs.ACCESS_TOKEN)  # token from thingsboard device
+        self.socket_thingsboard.username_pw_set(self.config["ACCESS_TOKEN"])  # token from thingsboard device
 
-        self.protocol_rosboard = self.configs.ROSBOARD_SOCKET.lower()
+        self.protocol_rosboard = self.config["ROSBOARD_SOCKET"].lower()
         if self.protocol_rosboard == "tcp":
-            self.server_address_port = self.configs.SERVER_IP, self.configs.TCP_PORT
+            self.server_address_port = self.config["SERVER_IP"], self.config["TCP_PORT"]
             self.socket_rosboard = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
         elif self.protocol_rosboard == "udp":
-            self.server_address_port = self.configs.SERVER_IP, self.configs.UDP_PORT
+            self.server_address_port = self.config["SERVER_IP"], self.config["UDP_PORT"]
             self.socket_rosboard = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
         else:
             raise ValueError(f"Invalid socket type: {self.protocol_rosboard}")
@@ -81,7 +88,7 @@ class R3MonitoringClient:
     def connect_to_mosquitto(self) -> bool:
         try:
             if not self.socket_mosquitto.is_connected():
-                self.socket_mosquitto.connect(self.configs.SERVER_IP, self.configs.MOSQUITTO_PORT)
+                self.socket_mosquitto.connect(self.config["SERVER_IP"], self.config["MOSQUITTO_PORT"])
                 self.socket_mosquitto.loop_start()
             return True
         except Exception as e:
@@ -91,7 +98,7 @@ class R3MonitoringClient:
     def connect_to_thingsboard(self) -> bool:
         try:
             if not self.is_connected_to_thingsboard:
-                self.socket_thingsboard.connect(self.configs.SERVER_IP, self.configs.MQTT_PORT, keepalive=10)
+                self.socket_thingsboard.connect(self.config["SERVER_IP"], self.config["MQTT_PORT"], keepalive=10)
                 # fixme: not sure these 2 lines are working
                 self.socket_thingsboard.reconnect_delay_set(min_delay=1, max_delay=30)
                 self.socket_thingsboard._reconnect_on_failure = True
@@ -176,7 +183,7 @@ class R3MonitoringClient:
         # convert ROS message into a dict and get it ready for serialization
         ros_msg_dict = ros2dict(ros_msg)
 
-        if self.protocol_rosboard == "udp" and self.configs.SEND_IMAGES and "_data_jpeg" in ros_msg_dict.keys():
+        if self.protocol_rosboard == "udp" and self.config["SEND_IMAGES"] and "_data_jpeg" in ros_msg_dict.keys():
             img = ros_msg_dict['_data_jpeg']
             mtu = 1000
             n = len(img) // mtu
@@ -195,10 +202,10 @@ class R3MonitoringClient:
         ros_msg_dict["_time"] = ts * 1000
         ros_msg_dict["utc_time"] = dt
         # ros_msg_dict["host_name"] = socket.gethostname()
-        ros_msg_dict["host_name"] = self.configs.ACCESS_TOKEN
+        ros_msg_dict["host_name"] = self.config["ACCESS_TOKEN"]
 
         # don't send messages faster than 5 Hz
-        if ts - self.last_time_topic_sent.get(topic_name, 0) < 1/float(self.configs.SEND_FREQ) \
+        if ts - self.last_time_topic_sent.get(topic_name, 0) < 1/float(self.config["SEND_FREQ"]) \
                 and not topic_type == "rosgraph_msgs/Log":
             return
         self.last_time_topic_sent[topic_name] = ts
@@ -225,7 +232,7 @@ class R3MonitoringClient:
     def send_msg_mosquitto(self, message):
         try:
             bytes_to_send = json.dumps({"ts": message['value']['_time'], "values": {message['name']: message['value']}})
-            result, mid = self.socket_mosquitto.publish(self.configs.ACCESS_TOKEN, bytes_to_send)
+            result, mid = self.socket_mosquitto.publish(self.config["ACCESS_TOKEN"], bytes_to_send)
             return result == paho.MQTT_ERR_SUCCESS
         except Exception as e:
             return False
@@ -291,10 +298,7 @@ class R3MonitoringClient:
 
 
 def test():
-    from r3_configs.config_robot import CONFIGS  # r3_monitoring configs
-    CONFIGS.load_from_home()
-    CONFIGS.save_to_home()
-    r3_monitoring = R3MonitoringClient(CONFIGS)
+    r3_monitoring = R3MonitoringClient()
 
     while True:
         r3_monitoring.step()
