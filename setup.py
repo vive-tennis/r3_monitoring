@@ -3,7 +3,9 @@ from setuptools import setup
 setup(
     name='r3_monitoring',
     version='0.1.0',
-    packages=['r3_monitoring'],
+    packages=['r3_monitoring', 'r3_monitoring_rqt'],
+    package_dir={'': 'src'},
+
     # scripts=['scripts/my_script.py'],
     install_requires=['rospy'],
     author='Javad Amirian',
