@@ -11,7 +11,6 @@ from sensor_msgs.msg import NavSatFix, LaserScan, Image, PointCloud2, BatterySta
 from geometry_msgs.msg import Twist, PointStamped, Point
 from visualization_msgs.msg import Marker
 from rosgraph_msgs.msg import Log
-from vive_ai.std_msgs_stamped.msg import Float64MultiArrayStamped
 import random
 import cv2
 
@@ -54,15 +53,15 @@ class ROS_Faker:
     def add_point_cloud2_publisher(self, topic: str = "pc2"):
         self.pubs[topic] = rospy.Publisher("Fake_pc2_publisher", PointCloud2, queue_size=10)
 
-    def add_array_publisher(self, topic: str = "array"):
-        self.pubs[topic] = rospy.Publisher("Fake_array_publisher", Float64MultiArrayStamped, queue_size=10)
+    # def add_array_publisher(self, topic: str = "array"):
+    #     self.pubs[topic] = rospy.Publisher("Fake_array_publisher", Float64MultiArrayStamped, queue_size=10)
 
-    def create_array_message(self):
-        msg = Float64MultiArrayStamped()
-        msg.header.stamp = rospy.Time.now()
-        msg.header.frame_id = "array"
-        msg.data = [random.uniform(1, 5), random.uniform(3, 10)]
-        return msg
+    # def create_array_message(self):
+    #     msg = Float64MultiArrayStamped()
+    #     msg.header.stamp = rospy.Time.now()
+    #     msg.header.frame_id = "array"
+    #     msg.data = [random.uniform(1, 5), random.uniform(3, 10)]
+    #     return msg
 
     def create_gps_message(self):
         msg = NavSatFix()
@@ -251,7 +250,7 @@ if __name__ == "__main__":
 
     # faker.add_action_tree_publisher()
 
-    faker.add_array_publisher()
+    # faker.add_array_publisher()
 
     while not rospy.is_shutdown():
         faker.publish()
