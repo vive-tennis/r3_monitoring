@@ -5,7 +5,7 @@
 <!--        read config file-->
 <!--        <arg name="config" default="$(find r3_monitoring)/r3_config/config_robot.yaml"/>-->
 
-        <node name="r3_robot" pkg="r3_monitoring" type="r3_robot" output="screen"/>
+        <node name="r3_robot" pkg="r3_monitoring" type="r3_robot_main.py" output="screen"/>
         <node name="system_stats" pkg="r3_monitoring" type="system_stat.py" output="screen"/>
 
 <!--    TODO  -->

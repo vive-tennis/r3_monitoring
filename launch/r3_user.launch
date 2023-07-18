@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
-
-    <node name="rqt" pkg="rqt_gui" type="rqt_gui" args="rqt_gui" output="screen"/>
-
+    <node name="r3_user" pkg="r3_monitoring" type="r3_user_main.py" output="screen"/>
 </launch>

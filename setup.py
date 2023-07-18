@@ -7,7 +7,7 @@ setup(
     package_dir={'': 'src'},
 
     # scripts=['scripts/my_script.py'],
-    install_requires=['rospy'],
+    install_requires=['rospy', 'paho-mqtt'],
     author='Javad Amirian',
     author_email='amiryan.j@gmail.com',
     description='Monitoring Robot Remotely in Realtime',
