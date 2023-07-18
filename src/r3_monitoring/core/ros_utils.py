@@ -2,7 +2,6 @@ import rostopic
 import os
 import time
 import importlib
-from roslaunch.parent import ROSLaunchParent
 
 __ros_core_parent__ = None
 
@@ -41,6 +40,7 @@ def start_roscore():
     """
     @rtype: bool
     """
+    from roslaunch.parent import ROSLaunchParent
     global __ros_core_parent__
     try:
         # Checkif rosmaster is running or not.
