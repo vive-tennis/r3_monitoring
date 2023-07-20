@@ -150,6 +150,7 @@ class R3MonitoringUser:
         self.client.loop_forever()
 
     def terminate(self):
+        print('Terminating R3 Monitoring User')
         self.client.disconnect()
         for topic in self.publishers:
             self.publishers[topic]['publisher'].unregister()

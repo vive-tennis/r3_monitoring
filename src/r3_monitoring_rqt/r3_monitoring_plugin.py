@@ -50,8 +50,8 @@ class R3MonitoringPlugin(Plugin):
         self.timer_watch_r3_topics.start(3000)  # 1 second
 
     def shutdown_plugin(self):
-        # TODO: unregister all publishers here
-        pass
+        # unregister all publishers here
+        self.r3_monitoring.terminate()
 
     def save_settings(self, plugin_settings, instance_settings):
         # TODO save intrinsic configuration, usually using:
