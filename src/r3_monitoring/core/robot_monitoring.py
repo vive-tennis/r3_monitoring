@@ -198,7 +198,7 @@ class R3MonitoringRobot:
 
         # don't send messages faster than 5 Hz
         if ts - self.last_time_topic_sent.get(topic_name, 0) < 1/float(self.config["SEND_FREQ"]) \
-                and not topic_type == "rosgraph_msgs/Log":
+                and topic_type not in ["rosgraph_msgs/Log", "visualization_msgs/Marker"]:
             return
         self.last_time_topic_sent[topic_name] = ts
 

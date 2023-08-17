@@ -67,7 +67,7 @@ class R3MonitoringUser:
                 try:
                     if isinstance(json_attrib, list) and len(json_attrib) > 0:
                         msg_attrib = getattr(msg, key)
-                        if any(isinstance(json_attrib[0], t) for t in [float]):
+                        if any(isinstance(json_attrib[0], t) for t in [float, str, bool, int]):
                             msg_attrib.clear()
                             for i in range(len(json_attrib)):
                                 msg_attrib.append(json_attrib[i])
