@@ -119,19 +119,18 @@ class R3MonitoringUser:
 
             msg = self.publishers[topic_name_out]['message_class']()
             self.json_to_ros(json_msg, msg)
-            if isinstance(msg, Log):
-                if msg.level == Log.INFO:
-                    rospy.loginfo(msg.msg)
-                elif msg.level == Log.WARN:
-                    rospy.logwarn(msg.msg)
-                elif msg.level == Log.ERROR:
-                    rospy.logerr(msg.msg)
-                elif msg.level == Log.FATAL:
-                    rospy.logfatal(msg.msg)
-                else:  # msg.level == Log.DEBUG:
-                    rospy.logdebug(msg.msg)
-            else:
-                self.publishers[topic_name_out]['publisher'].publish(msg)
+            # if isinstance(msg, Log):
+            #     if msg.level == Log.INFO:
+            #         rospy.loginfo(msg.msg)
+            #     elif msg.level == Log.WARN:
+            #         rospy.logwarn(msg.msg)
+            #     elif msg.level == Log.ERROR:
+            #         rospy.logerr(msg.msg)
+            #     elif msg.level == Log.FATAL:
+            #         rospy.logfatal(msg.msg)
+            #     else:  # msg.level == Log.DEBUG:
+            #         rospy.loginfo(msg.msg)
+            self.publishers[topic_name_out]['publisher'].publish(msg)
 
         except Exception as e:
             print(f"R3MonitoringUser: {str(e)}")
