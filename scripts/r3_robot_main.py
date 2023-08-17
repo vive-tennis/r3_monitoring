@@ -23,7 +23,7 @@ def main():
             paramlist = rosparam.load_file(robot_config_file, default_namespace="/r3_monitoring_robot")
             for params, ns in paramlist:
                 rosparam.upload_params(ns, params)
-            rospy.set_param("/r3_monitoring_robot/ACCESS_TOKEN", f"{socket.gethostname()}-{uuid.getnode()}")
+            rospy.set_param("/r3_monitoring_robot/ACCESS_TOKEN", f"{socket.gethostname()}")  # -{uuid.getnode()}
             config = rospy.get_param("/r3_monitoring_robot")
             r3_monitoring = R3MonitoringRobot(config)
             break
