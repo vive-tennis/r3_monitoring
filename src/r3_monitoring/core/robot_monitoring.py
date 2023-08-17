@@ -19,7 +19,7 @@ else:
 
 
 class R3MonitoringRobot:
-    def __init__(self, config, name="ros_r3_monitoring"):
+    def __init__(self, config, name="r3_monitoring"):
         self.config = config
 
         self.server_images_address_port = self.config["SERVER_IP"], self.config["IMAGE_PORT"]
