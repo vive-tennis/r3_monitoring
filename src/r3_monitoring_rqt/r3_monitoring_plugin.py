@@ -4,7 +4,7 @@ from threading import Thread
 
 import rospkg
 from python_qt_binding.QtCore import QTimer, Qt, QModelIndex
-from python_qt_binding.QtGui import QPixmap, QImage, QStandardItemModel, QStandardItem, QDoubleValidator
+from python_qt_binding.QtGui import QPixmap, QImage, QStandardItemModel, QStandardItem, QDoubleValidator, QColor
 from python_qt_binding.QtWidgets import QWidget, QMessageBox
 
 import rospy
@@ -49,6 +49,9 @@ class R3MonitoringPlugin(Plugin):
         self.timer_watch_r3_topics.timeout.connect(self.watch_r3_topics)
         self.timer_watch_r3_topics.start(3000)  # 1 second
 
+        self._widget.listview_robots.setModel(self.hostnames_model)
+        self._widget.listview_topics.setModel(self.topics_model)
+
     def shutdown_plugin(self):
         # unregister all publishers here
         self.r3_monitoring.terminate()
@@ -69,6 +72,11 @@ class R3MonitoringPlugin(Plugin):
                 # print(kv.key, kv.value)
                 pass  # todo: update the ui
 
+    @staticmethod
+    def hash_text_to_color(txt):
+        random.seed(txt)
+        return random.randint(0, 100), random.randint(0, 100), random.randint(0, 100)
+
     def watch_r3_topics(self):
         if self.r3_thread is None:
             return
@@ -83,24 +91,41 @@ class R3MonitoringPlugin(Plugin):
             item.setCheckState(Qt.Checked)
             item.setToolTip("click to subscribe/unsubscribe")
             self.hostnames_model.appendRow(item)
-        self._widget.listview_robots.setModel(self.hostnames_model)
 
         all_topics = sorted(self.r3_monitoring.publishers.keys())
+        topic_types = []
         for topic in all_topics:
+            try:
+                topic_types.append(self.r3_monitoring.publishers[topic]['message_class']._type.split('/')[-1])
+            except:
+                topic_types.append('unknown')
+
+        new_topic_found = False
+        for ii, topic in enumerate(all_topics):
             if self.topics_model.findItems(topic):
                 continue
-            # print(f"found new topic [{topic}]: \t{str(type(self.r3_monitoring.publishers[topic]['message_object'])).split('.')[-1][:-2]}")
+            new_topic_found = True
             item = QStandardItem(topic)
+            item.setToolTip(topic_types[ii])
+            # fg_color = self.hash_text_to_color(topic)
+            fg_color = [0, 0, 0]
+            if topic_types[ii] in ['Float32', 'Float64', 'Int32', 'Int64']:
+                fg_color = [0, 0, 255]
+            elif topic_types[ii] in ['Float32MultiArray', 'Float64MultiArray', 'Int32MultiArray', 'Int64MultiArray']:
+                fg_color = [0, 100, 255]
+            elif topic_types[ii] in ['Range']:
+                fg_color = [100, 0, 255]
+            item.setForeground(QColor(fg_color[0], fg_color[1], fg_color[2]))
             item.setEditable(False)
             item.setSelectable(True)
             item.setCheckable(True)
             item.setCheckState(Qt.Checked)
             self.topics_model.appendRow(item)
 
-            # if topic.endswith("/system_stats"):
-            #     self.my_subscribers.append(rospy.Subscriber(topic, DiagnosticStatus, self.system_stats_callback))
+        if new_topic_found:
+            self.topics_model.sort(0)
 
-        self._widget.listview_topics.setModel(self.topics_model)
+        # self._widget.listview_topics.setModel(self.topics_model)
         # self._widget.label_robot_hostname.setText(self.r3_monitoring.robot_hostnames[0])
 
     def start_r3_user(self):
