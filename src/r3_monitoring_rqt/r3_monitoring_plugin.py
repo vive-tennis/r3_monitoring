@@ -80,17 +80,20 @@ class R3MonitoringPlugin(Plugin):
     def watch_r3_topics(self):
         if self.r3_thread is None:
             return
-        for host in self.r3_monitoring.robot_hostnames:
-            if self.hostnames_model.findItems(host):
-                continue
-            print(f"found new robot: {host}")
-            item = QStandardItem(host)
-            item.setEditable(False)
-            item.setSelectable(False)
-            item.setCheckable(True)
-            item.setCheckState(Qt.Checked)
-            item.setToolTip("click to subscribe/unsubscribe")
-            self.hostnames_model.appendRow(item)
+        try:
+            for host in self.r3_monitoring.robot_hostnames:
+                if self.hostnames_model.findItems(host):
+                    continue
+                print(f"found new robot: {host}")
+                item = QStandardItem(host)
+                item.setEditable(False)
+                item.setSelectable(False)
+                item.setCheckable(True)
+                item.setCheckState(Qt.Checked)
+                item.setToolTip("click to subscribe/unsubscribe")
+                self.hostnames_model.appendRow(item)
+        except:
+            pass
 
         all_topics = sorted(self.r3_monitoring.publishers.keys())
         topic_types = []
